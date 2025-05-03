@@ -14,7 +14,7 @@ function QuizTest() {
       setQuizzes(response.data);
       if (response.data.length > 0) setCurrentQuiz(response.data[0]);
     } catch (error) {
-      console.error('Error fetching quizzes:', error);
+      console .error('Error fetching quizzes:', error);
     }
   };
 
