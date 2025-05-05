@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { toast } from 'react-toastify';
 import { getQuizzes, submitQuiz } from '../../services/api';
-import styles from './QuizTest.module.css';
 
 function QuizTest() {
   const [quizzes, setQuizzes] = useState([]);
@@ -14,23 +15,30 @@ function QuizTest() {
       setQuizzes(response.data);
       if (response.data.length > 0) setCurrentQuiz(response.data[0]);
     } catch (error) {
-      console .error('Error fetching quizzes:', error);
+      toast.error('Error fetching quizzes!');
+      console.error('Error fetching quizzes:', error);
     }
   };
 
   const handleSubmit = async () => {
-    if (!currentQuiz || selectedOption === null) return;
+    if (!currentQuiz || selectedOption === null) {
+      toast.error('Please select an option!');
+      return;
+    }
     try {
       const response = await submitQuiz({
         quizId: currentQuiz.id,
         userId: 1, // Hardcoded for simplicity
         selectedOption,
       });
-      setScore(score + response.data.score);
+      const newScore = score + response.data.score;
+      setScore(newScore);
+      toast.success(`Score: ${response.data.score} points!`);
       setSelectedOption(null);
       const nextQuiz = quizzes[quizzes.indexOf(currentQuiz) + 1];
       setCurrentQuiz(nextQuiz || null);
     } catch (error) {
+      toast.error('Error submitting quiz!');
       console.error('Error submitting quiz:', error);
     }
   };
@@ -39,28 +47,53 @@ function QuizTest() {
     fetchQuizzes();
   }, []);
 
-  if (!currentQuiz) return <div className={styles.section}>No quizzes available.</div>;
+  if (!currentQuiz) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="bg-white p-6 rounded-lg shadow-lg text-center text-gray-500"
+      >
+        No quizzes available.
+      </motion.div>
+    );
+  }
 
   return (
-    <div className={styles.section}>
-      <h2>Take Quiz</h2>
-      <p>Current Score: {score}</p>
-      <p>{currentQuiz.question}</p>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="bg-white p-6 rounded-lg shadow-lg"
+    >
+      <h2 className="text-xl font-semibold mb-4 text-primary">Take Quiz</h2>
+      <p className="text-lg mb-4">Current Score: {score}</p>
+      <p className="text-lg mb-4">{currentQuiz.question}</p>
       {JSON.parse(currentQuiz.options).map((option, index) => (
-        <div key={index}>
+        <motion.div
+          key={index}
+          whileHover={{ scale: 1.02 }}
+          className="flex items-center mb-2"
+        >
           <input
             type="radio"
             name="option"
             checked={selectedOption === index}
             onChange={() => setSelectedOption(index)}
+            className="mr-2"
           />
-          <label>{option}</label>
-        </div>
+          <label className="text-gray-700">{option}</label>
+        </motion.div>
       ))}
-      <button className={styles.button} onClick={handleSubmit}>
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={handleSubmit}
+        className="bg-secondary text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-colors mt-4"
+      >
         Submit
-      </button>
-    </div>
+      </motion.button>
+    </motion.div>
   );
 }
 

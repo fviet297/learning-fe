@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { toast } from 'react-toastify';
 import { createQuiz } from '../../services/api';
-import styles from './QuizForm.module.css';
 
 function QuizForm() {
   const [question, setQuestion] = useState('');
@@ -14,7 +15,15 @@ function QuizForm() {
   };
 
   const handleSubmit = async () => {
-    if (!question || options.some((opt) => !opt)) return;
+    var optsNum = options.filter(i=>i != '')
+    if (!question || optsNum.length == 0) {
+      toast.error('Please fill in all fields!');
+      return;
+    }
+    if (optsNum.length < 2) {
+      toast.error('Please fill more than 2 options!');
+      return;
+    }
     try {
       await createQuiz({
         question,
@@ -24,34 +33,42 @@ function QuizForm() {
       setQuestion('');
       setOptions(['', '', '', '']);
       setCorrectAnswer(0);
-      alert('Quiz created!');
+      toast.success('Quiz created successfully!');
     } catch (error) {
+      toast.error('Error creating quiz!');
       console.error('Error creating quiz:', error);
     }
   };
 
   return (
-    <div className={styles.section}>
-      <h2>Create Quiz</h2>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="bg-white p-6 rounded-lg shadow-lg"
+    >
+      <h2 className="text-xl font-semibold mb-4 text-primary">Create Quiz</h2>
       <input
-        className={styles.input}
+        type="text"
         value={question}
         onChange={(e) => setQuestion(e.target.value)}
         placeholder="Enter question"
+        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary mb-4"
       />
       {options.map((opt, index) => (
         <input
           key={index}
-          className={styles.input}
+          type="text"
           value={opt}
           onChange={(e) => handleOptionChange(index, e.target.value)}
           placeholder={`Option ${index + 1}`}
+          className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary mb-2"
         />
       ))}
       <select
-        className={styles.input}
         value={correctAnswer}
         onChange={(e) => setCorrectAnswer(parseInt(e.target.value))}
+        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary mb-4"
       >
         {options.map((_, index) => (
           <option key={index} value={index}>
@@ -59,10 +76,15 @@ function QuizForm() {
           </option>
         ))}
       </select>
-      <button className={styles.button} onClick={handleSubmit}>
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={handleSubmit}
+        className="bg-secondary text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-colors"
+      >
         Create
-      </button>
-    </div>
+      </motion.button>
+    </motion.div>
   );
 }
 
