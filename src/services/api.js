@@ -2,9 +2,58 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:8080/api';
 
-export const createFlashcard = (flashcard) => axios.post(`${API_URL}/flashcards`, flashcard);
-export const getRandomFlashcard = () => axios.get(`${API_URL}/flashcards/random`);
-export const updateFlashcard = (id, flashcard) => axios.put(`${API_URL}/flashcards/${id}`, flashcard);
-export const createQuiz = (quiz) => axios.post(`${API_URL}/quizzes`, quiz);
-export const getQuizzes = () => axios.get(`${API_URL}/quizzes`);
-export const submitQuiz = (submission) => axios.post(`${API_URL}/quizzes/submit`, submission);
+const api = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Interceptor để thêm token vào header nếu có
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+export const login = async (username, password) => {
+  const response = await api.post('/auth/login', { username, password });
+  return response.data;
+};
+
+export const register = async (username, password) => {
+  const response = await api.post('/auth/register', { username, password });
+  return response.data;
+};
+
+export const createFlashcard = async (flashcard) => {
+  const response = await api.post('/flashcards', flashcard);
+  return response.data;
+};
+
+export const getRandomFlashcard = async () => {
+  const response = await api.get('/flashcards/random');
+  return response.data;
+};
+
+export const updateFlashcard = async (id, flashcard) => {
+  const response = await api.put(`/flashcards/${id}`, flashcard);
+  return response.data;
+};
+
+export const createQuiz = async (quiz) => {
+  const response = await api.post('/quizzes', quiz);
+  return response.data;
+};
+
+export const getQuizzes = async () => {
+  const response = await api.get('/quizzes');
+  return response.data;
+};
+
+export const submitQuiz = async (submission) => {
+  const response = await api.post('/quizzes/submit', submission);
+  return response.data;
+};

@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
+import { AuthContext } from '../../context/AuthContext';
 import { getQuizzes, submitQuiz } from '../../services/api';
 
 function QuizTest() {
+  const { user } = useContext(AuthContext);
   const [quizzes, setQuizzes] = useState([]);
   const [currentQuiz, setCurrentQuiz] = useState(null);
   const [selectedOption, setSelectedOption] = useState(null);
@@ -28,7 +30,7 @@ function QuizTest() {
     try {
       const response = await submitQuiz({
         quizId: currentQuiz.id,
-        userId: 1, // Hardcoded for simplicity
+        userId: user.userId,
         selectedOption,
       });
       const newScore = score + response.data.score;
@@ -52,7 +54,7 @@ function QuizTest() {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="bg-white p-6 rounded-lg shadow-lg text-center text-gray-500"
+        className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg text-center text-gray-500"
       >
         No quizzes available.
       </motion.div>
@@ -64,7 +66,7 @@ function QuizTest() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-white p-6 rounded-lg shadow-lg"
+      className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg"
     >
       <h2 className="text-xl font-semibold mb-4 text-primary">Take Quiz</h2>
       <p className="text-lg mb-4">Current Score: {score}</p>

@@ -7,3 +7,33 @@ body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
   background-color: #f3f4f6;
 }
+
+/* Ensure content is not hidden behind sidebar */
+main {
+  margin-left: 256px; /* Match sidebar width */
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  nav {
+    width: 200px;
+  }
+  main {
+    margin-left: 200px;
+  }
+}
+
+@media (max-width: 640px) {
+  nav {
+    width: 60px;
+  }
+  nav h2, nav span {
+    display: none; /* Hide text on small screens */
+  }
+  nav li {
+    text-align: center;
+  }
+  main {
+    margin-left: 60px;
+  }
+}

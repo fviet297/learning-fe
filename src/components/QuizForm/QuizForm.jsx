@@ -15,13 +15,8 @@ function QuizForm() {
   };
 
   const handleSubmit = async () => {
-    var optsNum = options.filter(i=>i != '')
-    if (!question || optsNum.length == 0) {
+    if (!question || options.some((opt) => !opt)) {
       toast.error('Please fill in all fields!');
-      return;
-    }
-    if (optsNum.length < 2) {
-      toast.error('Please fill more than 2 options!');
       return;
     }
     try {
@@ -45,7 +40,7 @@ function QuizForm() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-white p-6 rounded-lg shadow-lg"
+      className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg"
     >
       <h2 className="text-xl font-semibold mb-4 text-primary">Create Quiz</h2>
       <input
