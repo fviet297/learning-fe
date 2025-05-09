@@ -10,7 +10,7 @@ body {
 
 /* Ensure content is not hidden behind sidebar */
 main {
-  margin-left: 256px; /* Match sidebar width */
+ /* margin-left: 256px;  Match sidebar width */
 }
 
 /* Responsive design */

@@ -18,7 +18,7 @@ function LoginPage() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-lg mt-10 md:ml-64"
+      className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg mt-12"
     >
       <h2 className="text-2xl font-semibold mb-6 text-primary text-center">Login</h2>
       <form onSubmit={handleSubmit}>

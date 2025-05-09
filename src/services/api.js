@@ -18,13 +18,13 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-export const login = async (username, password) => {
-  const response = await api.post('/auth/login', { username, password });
+export const login = async (username) => {
+  const response = await api.post('/auth/login',  username );
   return response.data;
 };
 
-export const register = async (username, password) => {
-  const response = await api.post('/auth/register', { username, password });
+export const register = async (username) => {
+  const response = await api.post('/auth/register', username);
   return response.data;
 };
 
