@@ -10,7 +10,7 @@ function FlashcardReview() {
   const fetchRandomFlashcard = async () => {
     try {
       const response = await getRandomFlashcard();
-      setFlashcard(response.data);
+      setFlashcard(response);
       setIsFlipped(false);
     } catch (error) {
       toast.error('Error fetching flashcard!');
@@ -39,7 +39,7 @@ function FlashcardReview() {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg text-center text-gray-500"
+        className=" mx-auto bg-white p-6 rounded-lg shadow-lg text-center text-gray-500"
       >
         No flashcards to review.
       </motion.div>
@@ -51,7 +51,7 @@ function FlashcardReview() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg"
+      className=" mx-auto bg-white p-6 rounded-lg shadow-lg"
     >
       <h2 className="text-xl font-semibold mb-4 text-primary">Review Flashcard</h2>
       <motion.div

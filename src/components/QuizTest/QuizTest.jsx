@@ -14,8 +14,8 @@ function QuizTest() {
   const fetchQuizzes = async () => {
     try {
       const response = await getQuizzes();
-      setQuizzes(response.data);
-      if (response.data.length > 0) setCurrentQuiz(response.data[0]);
+      setQuizzes(response);
+      if (response.length > 0) setCurrentQuiz(response[0]);
     } catch (error) {
       toast.error('Error fetching quizzes!');
       console.error('Error fetching quizzes:', error);
@@ -33,9 +33,9 @@ function QuizTest() {
         userId: user.userId,
         selectedOption,
       });
-      const newScore = score + response.data.score;
+      const newScore = score + response.score;
       setScore(newScore);
-      toast.success(`Score: ${response.data.score} points!`);
+      toast.success(`Score: ${response.score} points!`);
       setSelectedOption(null);
       const nextQuiz = quizzes[quizzes.indexOf(currentQuiz) + 1];
       setCurrentQuiz(nextQuiz || null);
@@ -54,7 +54,7 @@ function QuizTest() {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg text-center text-gray-500"
+        className=" mx-auto bg-white p-6 rounded-lg shadow-lg text-center text-gray-500"
       >
         No quizzes available.
       </motion.div>
@@ -66,7 +66,7 @@ function QuizTest() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg"
+      className=" mx-auto bg-white p-6 rounded-lg shadow-lg"
     >
       <h2 className="text-xl font-semibold mb-4 text-primary">Take Quiz</h2>
       <p className="text-lg mb-4">Current Score: {score}</p>
