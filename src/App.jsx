@@ -13,7 +13,7 @@ import RegisterPage from './pages/RegisterPage';
 
 function App() {
   const location = useLocation();
-
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
   return (
     <AuthProvider>
       <div className="max-w-4xl mx-auto p-6">
@@ -22,8 +22,8 @@ function App() {
         </header>
         <Navigation />
         <main>
-          <AnimatePresence mode="wait">
-            <Routes location={location} key={location.pathname}>
+          <AnimatePresence>
+            <Routes>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route

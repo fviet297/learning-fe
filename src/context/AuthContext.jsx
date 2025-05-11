@@ -7,14 +7,28 @@ export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userId = localStorage.getItem('userId');
-    if (token && userId) {
-      setUser({ token, userId: parseInt(userId) });
-    }
+    const initializeAuth = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const userId = localStorage.getItem('userId');
+        if (token && userId) {
+          // Verify token validity here if needed
+          setUser({ token, userId: parseInt(userId) });
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        localStorage.removeItem('token');
+        localStorage.removeItem('userId');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
   }, []);
 
   const handleLogin = async (username, password) => {
@@ -28,6 +42,7 @@ export const AuthProvider = ({ children }) => {
       navigate('/');
     } catch (error) {
       toast.error('Invalid credentials!');
+      throw error;
     }
   };
 
@@ -42,6 +57,7 @@ export const AuthProvider = ({ children }) => {
       navigate('/');
     } catch (error) {
       toast.error('Username already exists!');
+      throw error;
     }
   };
 
@@ -52,6 +68,10 @@ export const AuthProvider = ({ children }) => {
     toast.success('Logged out successfully!');
     navigate('/login');
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <AuthContext.Provider value={{ user, handleLogin, handleRegister, logout }}>

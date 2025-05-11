@@ -14,8 +14,8 @@ function QuizTest() {
   const fetchQuizzes = async () => {
     try {
       const response = await getQuizzes();
-      setQuizzes(response.data);
-      if (response.data.length > 0) setCurrentQuiz(response.data[0]);
+      setQuizzes(response);
+      if (response.length > 0) setCurrentQuiz(response[0]);
     } catch (error) {
       toast.error('Error fetching quizzes!');
       console.error('Error fetching quizzes:', error);
@@ -33,9 +33,9 @@ function QuizTest() {
         userId: user.userId,
         selectedOption,
       });
-      const newScore = score + response.data.score;
+      const newScore = score + response.score;
       setScore(newScore);
-      toast.success(`Score: ${response.data.score} points!`);
+      toast.success(`Score: ${response.score} points!`);
       setSelectedOption(null);
       const nextQuiz = quizzes[quizzes.indexOf(currentQuiz) + 1];
       setCurrentQuiz(nextQuiz || null);
