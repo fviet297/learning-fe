@@ -1,102 +1,329 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
-import { AuthContext } from '../../context/AuthContext';
 import { getQuizzes, submitQuiz } from '../../services/api';
 
 function QuizTest() {
-  const { user } = useContext(AuthContext);
-  const [quizzes, setQuizzes] = useState([]);
-  const [currentQuiz, setCurrentQuiz] = useState(null);
-  const [selectedOption, setSelectedOption] = useState(null);
-  const [score, setScore] = useState(0);
+  const { moduleId } = useParams();
+  const navigate = useNavigate();
+  const [quiz, setQuiz] = useState(null);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [selectedAnswers, setSelectedAnswers] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [currentScore, setCurrentScore] = useState(0);
+  const [results, setResults] = useState([]);
+  const [showingResult, setShowingResult] = useState(false);
+  const [lastAnswerCorrect, setLastAnswerCorrect] = useState(null);
 
-  const fetchQuizzes = async () => {
-    try {
-      const response = await getQuizzes();
-      setQuizzes(response);
-      if (response.length > 0) setCurrentQuiz(response[0]);
-    } catch (error) {
-      toast.error('Error fetching quizzes!');
-      console.error('Error fetching quizzes:', error);
+  useEffect(() => {
+    const fetchQuiz = async () => {
+      if (!moduleId) {
+        toast.error('Module ID is missing');
+        navigate('/study-modules');
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const response = await getQuizzes(moduleId);
+        console.log('Quiz response:', response);
+        if (response && response.data && Array.isArray(response.data)) {
+          setQuiz({
+            questions: response.data.map(item => ({
+              id: item.id,
+              text: item.question,
+              answers: JSON.parse(item.options).map((option, index) => ({
+                id: index,
+                text: option
+              })),
+              correctAnswer: item.correctAnswer
+            }))
+          });
+        } else {
+          toast.error('No quiz available');
+          navigate(`/study-modules/${moduleId}`);
+        }
+      } catch (error) {
+        console.error('Error fetching quiz:', error);
+        toast.error('Failed to load quiz');
+        navigate(`/study-modules/${moduleId}`);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuiz();
+  }, [moduleId, navigate]);
+
+  const handleAnswerSelect = async (questionId, answerId) => {
+    // Nếu đã chọn câu trả lời cho câu hỏi này, không cho chọn lại
+    if (selectedAnswers[questionId] !== undefined) {
+      return;
     }
+
+    setSelectedAnswers(prev => ({
+      ...prev,
+      [questionId]: answerId
+    }));
+
+    const currentQuestion = quiz.questions[currentQuestionIndex];
+    const isCorrect = answerId === currentQuestion.correctAnswer;
+    
+    // Cập nhật kết quả
+    const newResult = {
+      questionId: questionId,
+      question: currentQuestion.text,
+      selectedAnswer: answerId,
+      correctAnswer: currentQuestion.correctAnswer,
+      isCorrect: isCorrect
+    };
+
+    setResults(prev => [...prev, newResult]);
+    setShowingResult(true);
+    setLastAnswerCorrect(isCorrect);
+
+    // Cập nhật điểm
+    if (isCorrect) {
+      setCurrentScore(prev => prev + 10);
+    }
+
+    // Gửi kết quả lên API
+    try {
+      const submission = {
+        quizId: questionId,
+        userId: localStorage.getItem('userId'),
+        selectedOption: answerId
+      };
+      await submitQuiz(moduleId, submission);
+    } catch (error) {
+      console.error('Error submitting answer:', error);
+    }
+
+    // Xử lý sau 2 giây
+    setTimeout(() => {
+      if (currentQuestionIndex < quiz.questions.length - 1) {
+        // Nếu không phải câu cuối, chuyển sang câu tiếp theo
+        setShowingResult(false);
+        setLastAnswerCorrect(null);
+        setCurrentQuestionIndex(prev => prev + 1);
+      } else {
+        // Nếu là câu cuối, giữ nguyên kết quả và hiển thị nút hoàn thành
+        setIsSubmitted(true);
+        toast.success(`Quiz completed! Final score: ${currentScore} points`);
+      }
+    }, 2000);
   };
 
   const handleSubmit = async () => {
-    if (!currentQuiz || selectedOption === null) {
-      toast.error('Please select an option!');
+    if (!moduleId) {
+      toast.error('Module ID is missing');
       return;
     }
+
     try {
-      const response = await submitQuiz({
-        quizId: currentQuiz.id,
-        userId: user.userId,
-        selectedOption,
-      });
-      const newScore = score + response.score;
-      setScore(newScore);
-      toast.success(`Score: ${response.score} points!`);
-      setSelectedOption(null);
-      const nextQuiz = quizzes[quizzes.indexOf(currentQuiz) + 1];
-      setCurrentQuiz(nextQuiz || null);
+      setSubmitting(true);
+      
+      // Lấy user ID từ localStorage hoặc context
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        toast.error('Please login to submit quiz');
+        return;
+      }
+
+      // Kiểm tra xem đã trả lời hết các câu hỏi chưa
+      if (Object.keys(selectedAnswers).length !== quiz.questions.length) {
+        toast.error('Please answer all questions before submitting');
+        return;
+      }
+
+      // Tính toán kết quả ngay lập tức từ dữ liệu có sẵn
+      const quizResults = [];
+      let totalCorrect = 0;
+
+      for (const question of quiz.questions) {
+        const selectedAnswer = selectedAnswers[question.id];
+        const isCorrect = selectedAnswer === question.correctAnswer;
+        
+        quizResults.push({
+          questionId: question.id,
+          question: question.text,
+          selectedAnswer: selectedAnswer,
+          correctAnswer: question.correctAnswer,
+          isCorrect: isCorrect
+        });
+
+        if (isCorrect) {
+          totalCorrect++;
+        }
+      }
+
+      const finalScore = (totalCorrect / quiz.questions.length) * 100;
+      
+      // Cập nhật UI ngay lập tức
+      setScore(finalScore);
+      setResults(quizResults);
+      setIsSubmitted(true);
+      
+      toast.success(`Quiz completed! Your score: ${finalScore.toFixed(1)}%`);
+
+      // Gửi kết quả lên API
+      try {
+        const apiSubmissions = quizResults.map(result => ({
+          quizId: result.questionId,
+          userId: userId,
+          selectedOption: result.selectedAnswer
+        }));
+
+        // Gửi tất cả các submission cùng lúc
+        await Promise.all(
+          apiSubmissions.map(submission =>
+            submitQuiz(moduleId, submission).catch(error => {
+              console.error(`Error submitting answer for question ${submission.quizId}:`, error);
+              // Không throw error để tiếp tục xử lý các submission khác
+              return null;
+            })
+          )
+        );
+
+        console.log('All quiz results submitted to API successfully');
+      } catch (error) {
+        console.error('Error submitting some quiz results:', error);
+        // Không hiển thị lỗi cho user vì UI đã hiển thị kết quả thành công
+      }
     } catch (error) {
-      toast.error('Error submitting quiz!');
       console.error('Error submitting quiz:', error);
+      toast.error('Failed to submit quiz');
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  useEffect(() => {
-    fetchQuizzes();
-  }, []);
-
-  if (!currentQuiz) {
+  if (loading) {
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg text-center text-gray-500"
-      >
-        No quizzes available.
-      </motion.div>
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
     );
   }
+
+  if (!quiz || !quiz.questions || quiz.questions.length === 0) {
+    return (
+      <div className="text-center p-6">
+        <h2 className="text-xl text-red-600">{!quiz ? 'No quiz available' : 'No questions available for this quiz'}</h2>
+        <button
+          className="mt-4 bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+          onClick={() => navigate(`/study-modules/${moduleId}`)}
+        >
+          Back to Module
+        </button>
+      </div>
+    );
+  }
+
+  const currentQuestion = quiz.questions[currentQuestionIndex];
+  const isLastQuestion = currentQuestionIndex === quiz.questions.length - 1;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg"
+      className="max-w-4xl mx-auto p-6"
     >
-      <h2 className="text-xl font-semibold mb-4 text-primary">Take Quiz</h2>
-      <p className="text-lg mb-4">Current Score: {score}</p>
-      <p className="text-lg mb-4">{currentQuiz.question}</p>
-      {JSON.parse(currentQuiz.options).map((option, index) => (
+      {!isSubmitted ? (
+        // Hiển thị câu hỏi và đáp án
+        <>
+          <div className="mb-8 flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-semibold text-primary mb-2">{quiz.title}</h2>
+              <p className="text-gray-600">Question {currentQuestionIndex + 1} of {quiz.questions.length}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xl font-bold text-primary">Current Score: {currentScore}</p>
+              {showingResult && (
+                <div className={`mt-2 text-lg font-semibold ${lastAnswerCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                  {lastAnswerCorrect ? '+10 points!' : 'No points awarded'}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h3 className="text-xl font-semibold mb-4">{currentQuestion.text}</h3>
+            <div className="space-y-4">
+              {currentQuestion.answers.map((answer) => {
+                const isSelected = selectedAnswers[currentQuestion.id] === answer.id;
+                const showResult = showingResult;
+                const isCorrect = answer.id === currentQuestion.correctAnswer;
+                
+                let buttonClass = 'w-full text-left p-4 rounded-lg border-2 transition-colors';
+                if (showResult) {
+                  if (isCorrect) {
+                    buttonClass += ' border-green-500 bg-green-50';
+                  } else if (isSelected && !isCorrect) {
+                    buttonClass += ' border-red-500 bg-red-50';
+                  } else {
+                    buttonClass += ' border-gray-200';
+                  }
+                } else if (isSelected) {
+                  buttonClass += ' border-primary bg-primary/10';
+                } else {
+                  buttonClass += ' border-gray-200 hover:border-primary/50';
+                }
+                
+                return (
+                  <motion.button
+                    key={answer.id}
+                    whileHover={{ scale: (showingResult || selectedAnswers[currentQuestion.id] !== undefined) ? 1 : 1.02 }}
+                    whileTap={{ scale: (showingResult || selectedAnswers[currentQuestion.id] !== undefined) ? 1 : 0.98 }}
+                    className={buttonClass}
+                    onClick={() => !showingResult && handleAnswerSelect(currentQuestion.id, answer.id)}
+                    disabled={showingResult || selectedAnswers[currentQuestion.id] !== undefined}
+                    onDoubleClick={() => !showingResult && !selectedAnswers[currentQuestion.id] && handleAnswerSelect(currentQuestion.id, answer.id)}
+                  >
+                    <div className="flex justify-between items-center">
+                      <span>{answer.text}</span>
+                      {showResult && (
+                        <span className={`ml-2 ${isCorrect ? 'text-green-600' : (isSelected ? 'text-red-600' : '')}`}>
+                          {isCorrect && '✓'}
+                          {isSelected && !isCorrect && '✗'}
+                        </span>
+                      )}
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      ) : (
+        // Hiển thị kết quả cuối cùng
         <motion.div
-          key={index}
-          whileHover={{ scale: 1.02 }}
-          className="flex items-center mb-2"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="bg-white rounded-lg shadow-lg p-8 text-center"
         >
-          <input
-            type="radio"
-            name="option"
-            checked={selectedOption === index}
-            onChange={() => setSelectedOption(index)}
-            className="mr-2"
-          />
-          <label className="text-gray-700">{option}</label>
+          <h2 className="text-3xl font-bold text-primary mb-6">Quiz Completed!</h2>
+          <div className="mb-8">
+            <p className="text-4xl font-bold text-primary mb-4">{currentScore} points</p>
+            <p className="text-xl text-gray-600">Correct answers: {results.filter(r => r.isCorrect).length} / {quiz.questions.length}</p>
+          </div>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="bg-primary text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors"
+            onClick={() => navigate(`/study-modules/${moduleId}`)}
+          >
+            Back to Module
+          </motion.button>
         </motion.div>
-      ))}
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={handleSubmit}
-        className="bg-secondary text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-colors mt-4"
-      >
-        Submit
-      </motion.button>
+      )}
     </motion.div>
   );
 }
 
-export default QuizTest;
+export default QuizTest; 

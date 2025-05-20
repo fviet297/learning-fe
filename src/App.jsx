@@ -10,6 +10,11 @@ import CreateQuizPage from './pages/CreateQuizPage';
 import TakeQuizPage from './pages/TakeQuizPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import CreateStudyModulePage from './pages/CreateStudyModulePage';
+import StudyModuleListPage from './pages/StudyModuleListPage';
+import StudyModuleDetails from './pages/StudyModuleDetails';
+import StudyModuleReview from './pages/StudyModuleReview';
+import HomePage from './pages/HomePage';
 
 function App() {
   const location = useLocation();
@@ -24,6 +29,7 @@ function App() {
         <main>
           <AnimatePresence>
             <Routes>
+              <Route path="/" element={<HomePage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route
@@ -73,6 +79,111 @@ function App() {
               />
               <Route
                 path="/take-quiz"
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial={{ opacity: 0, x: -100 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 100 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <TakeQuizPage />
+                    </motion.div>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/create-study-module"
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial={{ opacity: 0, x: -100 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 100 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <CreateStudyModulePage />
+                    </motion.div>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/study-modules"
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial={{ opacity: 0, x: -100 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 100 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <StudyModuleListPage />
+                    </motion.div>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/study-modules/:moduleId"
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial={{ opacity: 0, x: -100 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 100 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <StudyModuleDetails />
+                    </motion.div>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/study-modules/:moduleId/create-flashcard"
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial={{ opacity: 0, x: -100 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 100 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <CreateFlashcardPage />
+                    </motion.div>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/study-modules/:moduleId/review-flashcard"
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial={{ opacity: 0, x: -100 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 100 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <StudyModuleReview />
+                    </motion.div>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/study-modules/:moduleId/create-quiz"
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial={{ opacity: 0, x: -100 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 100 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <CreateQuizPage />
+                    </motion.div>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/study-modules/:moduleId/take-quiz"
                 element={
                   <ProtectedRoute>
                     <motion.div

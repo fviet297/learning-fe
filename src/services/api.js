@@ -18,13 +18,13 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-export const login = async (username) => {
-  const response = await api.post('/auth/login',  username );
+export const login = async (credentials) => {
+  const response = await api.post('/auth/login', credentials);
   return response.data;
 };
 
-export const register = async (username) => {
-  const response = await api.post('/auth/register', username);
+export const register = async (userData) => {
+  const response = await api.post('/auth/register', userData);
   return response.data;
 };
 
@@ -44,16 +44,49 @@ export const updateFlashcard = async (id, flashcard) => {
 };
 
 export const createQuiz = async (quiz) => {
-  const response = await api.post('/quizzes', quiz);
+  const response = await api.post(`/quizzes`, quiz);
   return response.data;
 };
 
-export const getQuizzes = async () => {
-  const response = await api.get('/quizzes');
+export const getQuizzes = async (moduleId) => {
+  if (!moduleId || typeof moduleId !== 'string') {
+    throw new Error('Invalid moduleId');
+  }
+  const response = await api.get(`/quizzes/${moduleId}`);
   return response.data;
 };
 
-export const submitQuiz = async (submission) => {
+export const submitQuiz = async (moduleId, submission) => {
   const response = await api.post('/quizzes/submit', submission);
   return response.data;
 };
+
+export const createStudyModule = async (studyModule) => {
+  const response = await api.post(`${API_URL}/study-modules`, studyModule);
+  return response.data;
+};
+
+export const getAllStudyModules = async () => {
+  try {
+    const response = await api.get('/study-modules');
+    console.log('API Response:', response); // Debug log
+    return response.data.content;
+  } catch (error) {
+    console.error('Error in getAllStudyModules:', error);
+    throw error;
+  }
+};
+
+export const getStudyModuleById = async (moduleId) => {
+  try {
+    const response = await api.get(`${API_URL}/study-modules/${moduleId}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getAllStudyModule = async (page = 0, size = 10) => {
+  const response = await api.get(`/study-modules?page=${page}&size=${size}`);
+  return response.data;
+}; 

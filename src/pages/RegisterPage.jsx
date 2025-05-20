@@ -6,11 +6,14 @@ import { Link } from 'react-router-dom';
 function RegisterPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
+  const [fullName, setFullName] = useState('');
+
   const { handleRegister } = useContext(AuthContext);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    handleRegister(username, password);
+    handleRegister(username, password, email, fullName);
   };
 
   return (
@@ -18,7 +21,8 @@ function RegisterPage() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg mt-12"    >
+      className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg mt-12"
+    >
       <h2 className="text-2xl font-semibold mb-6 text-primary text-center">Register</h2>
       <form onSubmit={handleSubmit}>
         <input
@@ -26,6 +30,20 @@ className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg mt-12"    >
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           placeholder="Username"
+          className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary mb-4"
+        />
+        <input
+          type="text"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          placeholder="Full Name"
+          className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary mb-4"
+        />
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Email"
           className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary mb-4"
         />
         <input

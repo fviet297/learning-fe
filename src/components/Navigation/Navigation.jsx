@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { AuthContext } from '../../context/AuthContext';
 
@@ -11,10 +11,8 @@ function Navigation() {
       {user ? (
         <>
           {[
-            { to: '/', label: 'Create Flashcard' },
-            { to: '/review-flashcard', label: 'Review Flashcard' },
-            { to: '/create-quiz', label: 'Create Quiz' },
-            { to: '/take-quiz', label: 'Take Quiz' },
+            { to: '/create-study-module', label: 'Create Study Module' },
+            { to: '/study-modules', label: 'Study Modules' },
           ].map((item) => (
             <NavLink
               key={item.to}
