@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
-import { getQuizzes, submitQuiz } from '../../services/api';
+import { getQuizzes, submitQuiz, submitQuizResult } from '../../services/api';
 
 function QuizTest() {
   const { moduleId } = useParams();
@@ -90,29 +90,32 @@ function QuizTest() {
       setCurrentScore(prev => prev + 10);
     }
 
-    // Gửi kết quả lên API
-    try {
-      const submission = {
-        quizId: questionId,
-        userId: localStorage.getItem('userId'),
-        selectedOption: answerId
-      };
-      await submitQuiz(moduleId, submission);
-    } catch (error) {
-      console.error('Error submitting answer:', error);
-    }
+    // Không gửi API ở đây nữa
 
     // Xử lý sau 2 giây
-    setTimeout(() => {
+    setTimeout(async () => {
       if (currentQuestionIndex < quiz.questions.length - 1) {
         // Nếu không phải câu cuối, chuyển sang câu tiếp theo
         setShowingResult(false);
         setLastAnswerCorrect(null);
         setCurrentQuestionIndex(prev => prev + 1);
       } else {
-        // Nếu là câu cuối, giữ nguyên kết quả và hiển thị nút hoàn thành
-        setIsSubmitted(true);
-        toast.success(`Quiz completed! Final score: ${currentScore} points`);
+        // Nếu là câu cuối, gửi kết quả lên API và hiển thị màn hình hoàn thành
+        try {
+          const quizResult = {
+            userId: localStorage.getItem('userId'),
+            studyModuleId: moduleId,
+            score: currentScore
+          };
+          await submitQuizResult(quizResult);
+          setIsSubmitted(true);
+          toast.success(`Quiz completed! Final score: ${currentScore} points`);
+        } catch (error) {
+          console.error('Error submitting quiz result:', error);
+          toast.error('Failed to save quiz result');
+          // Vẫn hiển thị kết quả cho user dù có lỗi
+          setIsSubmitted(true);
+        }
       }
     }, 2000);
   };

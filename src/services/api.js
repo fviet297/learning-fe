@@ -29,7 +29,10 @@ export const register = async (userData) => {
 };
 
 export const createFlashcard = async (flashcard) => {
-  const response = await api.post('/flashcards', flashcard);
+  const response = await api.post('/flashcards', flashcard, {
+    question: flashcard.question,
+    answer: flashcard.answer
+  });
   return response.data;
 };
 
@@ -53,6 +56,11 @@ export const getQuizzes = async (moduleId) => {
     throw new Error('Invalid moduleId');
   }
   const response = await api.get(`/quizzes/${moduleId}`);
+  return response.data;
+};
+
+export const submitQuizResult = async (result) => {
+  const response = await api.post('/quiz-result', result);
   return response.data;
 };
 
