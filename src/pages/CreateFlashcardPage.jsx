@@ -5,20 +5,22 @@ import { toast } from 'react-toastify';
 import { createFlashcard } from '../services/api';
 
 function CreateFlashcardPage() {
-  const [content, setContent] = useState('');
+  const [question, setQuestion] = useState('');
+  const [answer, setAnswer] = useState('');
   const { moduleId } = useParams();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!content.trim()) {
-      toast.error('Please enter flashcard content!');
+    if (!question.trim() || !answer.trim()) {
+      toast.error('Please enter both question and answer!');
       return;
     }
 
     try {
       await createFlashcard({
-        content,
+        question,
+        answer,
         studyModuleId: moduleId
       });
       toast.success('Flashcard created successfully!');
@@ -37,21 +39,36 @@ function CreateFlashcardPage() {
       className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg"
     >
       <h2 className="text-2xl font-semibold mb-6 text-primary">Create Flashcard</h2>
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label htmlFor="content" className="block text-gray-700 font-medium mb-2">
-            Flashcard Content
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <label htmlFor="question" className="block text-gray-700 font-medium mb-2">
+            Question
           </label>
-          <textarea
-            id="content"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
+          <input
+            id="question"
+            type="text"
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
-            rows="4"
-            placeholder="Enter flashcard content..."
+            placeholder="Enter your question..."
           />
         </div>
-        <div className="flex justify-end gap-4">
+
+        <div>
+          <label htmlFor="answer" className="block text-gray-700 font-medium mb-2">
+            Answer
+          </label>
+          <textarea
+            id="answer"
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+            rows="4"
+            placeholder="Enter the answer..."
+          />
+        </div>
+
+        <div className="flex justify-end gap-4 pt-4">
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -65,7 +82,7 @@ function CreateFlashcardPage() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             type="submit"
-            className="bg-secondary text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-colors"
+            className="bg-secondary text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-colors font-medium"
           >
             Create Flashcard
           </motion.button>
