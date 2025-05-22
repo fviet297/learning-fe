@@ -85,41 +85,40 @@ function QuizTest() {
     setShowingResult(true);
     setLastAnswerCorrect(isCorrect);
 
-    // Cập nhật điểm
-    if (isCorrect) {
-      setCurrentScore(prev => prev + 10);
-    }
+   // Cập nhật điểm ngay lập tức
+  let newScore = currentScore;
+  if (isCorrect) {
+    newScore = currentScore + 10;
+    setCurrentScore(newScore);
+  }
 
-    // Không gửi API ở đây nữa
-
-    // Xử lý sau 2 giây
-    setTimeout(async () => {
-      if (currentQuestionIndex < quiz.questions.length - 1) {
-        // Nếu không phải câu cuối, chuyển sang câu tiếp theo
-        setShowingResult(false);
-        setLastAnswerCorrect(null);
-        setCurrentQuestionIndex(prev => prev + 1);
-      } else {
-        // Nếu là câu cuối, gửi kết quả lên API và hiển thị màn hình hoàn thành
-        try {
-          const quizResult = {
-            userId: localStorage.getItem('userId'),
-            studyModuleId: moduleId,
-            score: currentScore
-          };
-          await submitQuizResult(quizResult);
-          setIsSubmitted(true);
-          toast.success(`Quiz completed! Final score: ${currentScore} points`);
-        } catch (error) {
-          console.error('Error submitting quiz result:', error);
-          toast.error('Failed to save quiz result');
-          // Vẫn hiển thị kết quả cho user dù có lỗi
-          setIsSubmitted(true);
-        }
+  // Xử lý sau 2 giây
+  setTimeout(async () => {
+    if (currentQuestionIndex < quiz.questions.length - 1) {
+      // Nếu không phải câu cuối, chuyển sang câu tiếp theo
+      setShowingResult(false);
+      setLastAnswerCorrect(null);
+      setCurrentQuestionIndex(prev => prev + 1);
+    } else {
+      // Nếu là câu cuối, gửi kết quả lên API và hiển thị màn hình hoàn thành
+      try {
+        const quizResult = {
+          userId: localStorage.getItem('userId'),
+          studyModuleId: moduleId,
+          score: newScore  // Sử dụng newScore thay vì currentScore
+        };
+        await submitQuizResult(quizResult);
+        setIsSubmitted(true);
+        toast.success(`Quiz completed! Final score: ${newScore} points`);
+      } catch (error) {
+        console.error('Error submitting quiz result:', error);
+        toast.error('Failed to save quiz result');
+        // Vẫn hiển thị kết quả cho user dù có lỗi
+        setIsSubmitted(true);
       }
-    }, 2000);
-  };
-
+    }
+  }, 2000);
+};
   const handleSubmit = async () => {
     if (!moduleId) {
       toast.error('Module ID is missing');
