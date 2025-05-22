@@ -18,6 +18,52 @@ function QuizTest() {
   const [showingResult, setShowingResult] = useState(false);
   const [lastAnswerCorrect, setLastAnswerCorrect] = useState(null);
 
+  // Shuffle array function
+  const shuffleArray = (array) => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
+  // Reset quiz state
+  const restartQuiz = async () => {
+    setCurrentQuestionIndex(0);
+    setSelectedAnswers({});
+    setIsSubmitted(false);
+    setCurrentScore(0);
+    setResults([]);
+    setShowingResult(false);
+    setLastAnswerCorrect(null);
+    
+    // Re-fetch and shuffle questions
+    try {
+      setLoading(true);
+      const response = await getQuizzes(moduleId);
+      if (response && response.data && Array.isArray(response.data)) {
+        const shuffledQuestions = shuffleArray(response.data);
+        setQuiz({
+          questions: shuffledQuestions.map(item => ({
+            id: item.id,
+            text: item.question,
+            answers: JSON.parse(item.options).map((option, index) => ({
+              id: index,
+              text: option
+            })),
+            correctAnswer: item.correctAnswer
+          }))
+        });
+      }
+    } catch (error) {
+      console.error('Error restarting quiz:', error);
+      toast.error('Failed to restart quiz');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     const fetchQuiz = async () => {
       if (!moduleId) {
@@ -31,8 +77,10 @@ function QuizTest() {
         const response = await getQuizzes(moduleId);
         console.log('Quiz response:', response);
         if (response && response.data && Array.isArray(response.data)) {
+          // Shuffle questions before setting the quiz state
+          const shuffledQuestions = shuffleArray(response.data);
           setQuiz({
-            questions: response.data.map(item => ({
+            questions: shuffledQuestions.map(item => ({
               id: item.id,
               text: item.question,
               answers: JSON.parse(item.options).map((option, index) => ({
@@ -314,14 +362,24 @@ function QuizTest() {
             <p className="text-4xl font-bold text-primary mb-4">{currentScore} points</p>
             <p className="text-xl text-gray-600">Correct answers: {results.filter(r => r.isCorrect).length} / {quiz.questions.length}</p>
           </div>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="bg-primary text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors"
-            onClick={() => navigate(`/study-modules/${moduleId}`)}
-          >
-            Back to Module
-          </motion.button>
+          <div className="flex justify-center space-x-4">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-primary text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors"
+              onClick={() => navigate(`/study-modules/${moduleId}`)}
+            >
+              Back to Module
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-green-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition-colors"
+              onClick={restartQuiz}
+            >
+              Re-test
+            </motion.button>
+          </div>
         </motion.div>
       )}
     </motion.div>
