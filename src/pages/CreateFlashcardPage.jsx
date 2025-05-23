@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
-import { createFlashcard } from '../services/api';
+import { createBulkFlashcards } from '../services/api';
 
 function CreateFlashcardPage() {
   const [flashcards, setFlashcards] = useState([{ question: '', answer: '' }]);
@@ -32,12 +32,16 @@ function CreateFlashcardPage() {
     }
 
     try {
-      for (const flashcard of validFlashcards) {
-        await createFlashcard({
-          ...flashcard,
-          studyModuleId: moduleId
-        });
-      }
+      // Structure payload according to required format
+      const payload = {
+        studyModuleId: moduleId,
+        flashcardRequests: validFlashcards.map(({ question, answer }) => ({
+          question,
+          answer
+        }))
+      };
+      
+      await createBulkFlashcards(payload);
       toast.success(`${validFlashcards.length} flashcard(s) created successfully!`);
       navigate(`/study-modules/${moduleId}`);
     } catch (error) {

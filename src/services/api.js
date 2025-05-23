@@ -36,6 +36,11 @@ export const createFlashcard = async (flashcard) => {
   return response.data;
 };
 
+export const createBulkFlashcards = async (payload) => {
+  const response = await api.post('/flashcards', payload);
+  return response.data;
+};
+
 export const getRandomFlashcard = async () => {
   const response = await api.get('/flashcards/random');
   return response.data;
