@@ -51,8 +51,10 @@ export const updateFlashcard = async (id, flashcard) => {
   return response.data;
 };
 
-export const createQuiz = async (quiz) => {
-  const response = await api.post(`/quizzes`, quiz);
+
+
+export const createBulkQuizzes = async (payload) => {
+  const response = await api.post('/quizzes', payload);
   return response.data;
 };
 
