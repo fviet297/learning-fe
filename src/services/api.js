@@ -42,7 +42,12 @@ export const createBulkFlashcards = async (payload) => {
 };
 
 export const getRandomFlashcard = async () => {
-  const response = await api.get('/flashcards/random');
+  const response = await api.get('/flashcards/random/f4fdcb68-b15e-4947-b443-d09a610cd545');
+  return response.data;
+};
+
+export const getFlashcardsByModule = async (moduleId) => {
+  const response = await api.get(`/flashcards/${moduleId}`);
   return response.data;
 };
 
@@ -51,10 +56,20 @@ export const updateFlashcard = async (id, flashcard) => {
   return response.data;
 };
 
+export const deleteFlashcard = async (flashcardId) => {
+  const response = await api.delete(`/flashcards/${flashcardId}`);
+  return response.data;
+};
+
 
 
 export const createBulkQuizzes = async (payload) => {
   const response = await api.post('/quizzes', payload);
+  return response.data;
+};
+
+export const deleteQuiz = async (quizId) => {
+  const response = await api.delete(`/quizzes/${quizId}`);
   return response.data;
 };
 
