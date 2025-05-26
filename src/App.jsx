@@ -31,13 +31,13 @@ function App() {
           <AnimatePresence>
             <Routes>
               <Route
-  path="/"
-  element={
-    <ProtectedRoute>
-      <HomePage />
-    </ProtectedRoute>
-  }
-/>
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <HomePage />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="/login" element={
                 <PublicRoute>
                   <LoginPage />
@@ -59,21 +59,6 @@ function App() {
                       transition={{ duration: 0.3 }}
                     >
                       <CreateFlashcardPage />
-                    </motion.div>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/review-flashcard"
-                element={
-                  <ProtectedRoute>
-                    <motion.div
-                      initial={{ opacity: 0, x: -100 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 100 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <ReviewFlashcardPage />
                     </motion.div>
                   </ProtectedRoute>
                 }
@@ -178,7 +163,7 @@ function App() {
                       exit={{ opacity: 0, x: 100 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <StudyModuleReview />
+                      <ReviewFlashcardPage />
                     </motion.div>
                   </ProtectedRoute>
                 }
