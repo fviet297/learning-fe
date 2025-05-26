@@ -18,6 +18,25 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Interceptor để xử lý lỗi 401
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      // Xóa thông tin đăng nhập trong localStorage
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
+      // Chuyển hướng về trang đăng nhập
+      window.location.href = '/login';
+      
+      // Hiển thị thông báo nếu cần
+      alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const login = async (credentials) => {
   const response = await api.post('/auth/login', credentials);
   return response.data;

@@ -3,6 +3,7 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import PublicRoute from './components/PublicRoute';
 import Navigation from './components/Navigation/Navigation';
 import CreateFlashcardPage from './pages/CreateFlashcardPage';
 import ReviewFlashcardPage from './pages/ReviewFlashcardPage';
@@ -37,8 +38,16 @@ function App() {
     </ProtectedRoute>
   }
 />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/login" element={
+                <PublicRoute>
+                  <LoginPage />
+                </PublicRoute>
+              } />
+              <Route path="/register" element={
+                <PublicRoute>
+                  <RegisterPage />
+                </PublicRoute>
+              } />
               <Route
                 path="/"
                 element={

@@ -1,12 +1,17 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { login, register } from '../services/api';
 
 export const AuthContext = createContext();
 
+// Custom hook để sử dụng AuthContext
+export const useAuth = () => {
+  return useContext(AuthContext);
+};
+
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -17,7 +22,7 @@ export const AuthProvider = ({ children }) => {
         const userId = localStorage.getItem('userId');
         if (token && userId) {
           // Verify token validity here if needed
-          setUser({ token, userId: parseInt(userId) });
+          setCurrentUser({ token, userId: parseInt(userId) });
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
@@ -37,7 +42,7 @@ export const AuthProvider = ({ children }) => {
       const { token, userId } = response.data;
       localStorage.setItem('token', token);
       localStorage.setItem('userId', userId);
-      setUser({ token, userId });
+      setCurrentUser({ token, userId });
       toast.success('Logged in successfully!');
       navigate('/');
     } catch (error) {
@@ -52,7 +57,7 @@ export const AuthProvider = ({ children }) => {
       const { token, userId } = response.data;
       localStorage.setItem('token', token);
       localStorage.setItem('userId', userId);
-      setUser({ token, userId });
+      setCurrentUser({ token, userId });
       toast.success('Registered successfully!');
       navigate('/');
     } catch (error) {
@@ -62,9 +67,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    setCurrentUser(null);
     localStorage.removeItem('token');
     localStorage.removeItem('userId');
-    setUser(null);
     toast.success('Logged out successfully!');
     navigate('/login');
   };
@@ -74,8 +79,14 @@ export const AuthProvider = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, handleLogin, handleRegister, logout }}>
-      {children}
+    <AuthContext.Provider value={{ 
+      user: currentUser, 
+      currentUser,
+      handleLogin, 
+      handleRegister, 
+      logout 
+    }}>
+      {!loading && children}
     </AuthContext.Provider>
   );
 };
