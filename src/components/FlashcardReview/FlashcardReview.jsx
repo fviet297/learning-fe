@@ -3,10 +3,11 @@ import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { getRandomFlashcard, updateFlashcard } from '../../services/api';
 import { FiRefreshCw } from 'react-icons/fi';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 function FlashcardReview() {
   const navigate = useNavigate();
+  const { moduleId } = useParams();
   const [flashcard, setFlashcard] = useState(null);
   const [isFlipped, setIsFlipped] = useState(false);
   const [stats, setStats] = useState({
@@ -17,7 +18,7 @@ function FlashcardReview() {
 
   const fetchRandomFlashcard = async () => {
     try {
-      const response = await getRandomFlashcard();
+      const response = await getRandomFlashcard(moduleId);
       // Kiểm tra xem response.data có tồn tại không
       if (!response || !response.data) {
         // Không còn flashcard nào, đặt flashcard thành null để hiển thị kết quả

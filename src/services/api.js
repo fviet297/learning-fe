@@ -60,8 +60,8 @@ export const createBulkFlashcards = async (payload) => {
   return response.data;
 };
 
-export const getRandomFlashcard = async () => {
-  const response = await api.get('/flashcards/random/f4fdcb68-b15e-4947-b443-d09a610cd545');
+export const getRandomFlashcard = async (moduleId) => {
+  const response = await api.get(`/flashcards/random/${moduleId}`);
   return response.data;
 };
 
