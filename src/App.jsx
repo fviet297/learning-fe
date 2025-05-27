@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicRoute from './components/PublicRoute';
-import Navigation from './components/Navigation/Navigation';
+import Layout from './components/Layout/Layout';
 import CreateFlashcardPage from './pages/CreateFlashcardPage';
 import ReviewFlashcardPage from './pages/ReviewFlashcardPage';
 import CreateQuizPage from './pages/CreateQuizPage';
@@ -22,12 +22,8 @@ function App() {
   const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
   return (
     <AuthProvider>
-      <div className="max-w-4xl mx-auto p-6">
-        <header className="bg-primary text-white p-4 rounded-lg shadow-md mb-6">
-          <h1 className="text-2xl font-bold text-center">Learning App</h1>
-        </header>
-        <Navigation />
-        <main>
+      {!isAuthPage ? (
+        <Layout>
           <AnimatePresence>
             <Routes>
               <Route
@@ -200,8 +196,22 @@ function App() {
               />
             </Routes>
           </AnimatePresence>
-        </main>
-      </div>
+        </Layout>
+      ) : (
+        <div className="max-w-4xl mx-auto p-6">
+          <header className="bg-primary text-white p-4 rounded-lg shadow-md mb-6">
+            <h1 className="text-2xl font-bold text-center">Learning App</h1>
+          </header>
+          <main>
+            <AnimatePresence>
+              <Routes>
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+              </Routes>
+            </AnimatePresence>
+          </main>
+        </div>
+      )}
     </AuthProvider>
   );
 }
