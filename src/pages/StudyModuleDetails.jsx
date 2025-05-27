@@ -84,6 +84,21 @@ function StudyModuleDetails() {
       transition={{ duration: 0.5 }}
       className="max-w-4xl mx-auto p-6"
     >
+      <div className="flex items-center mb-4">
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          type="button"
+          onClick={() => navigate(`/study-modules`)}
+          className="flex items-center justify-center w-10 h-10 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 hover:text-gray-800 transition-all shadow-sm"
+          title="Back to Module"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+        </motion.button>
+      </div>
+      
       <div className="mb-8">
         <h2 className="text-2xl font-semibold text-primary mb-2">{module.name}</h2>
         <p className="text-gray-600">{module.description}</p>
@@ -147,16 +162,7 @@ function StudyModuleDetails() {
         </div>
       </div>
 
-      <div className="flex justify-center mt-8">
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-300 transition-colors"
-          onClick={() => navigate('/study-modules')}
-        >
-          Back to Modules
-        </motion.button>
-      </div>
+      
     </motion.div>
   );
 }

@@ -25,10 +25,10 @@ function FlashcardReview() {
         setFlashcard(null);
         return;
       }
-      
+
       // Ensure we have both question and answer fields
       const flashcardData = response.data;
-      
+
       // Khởi tạo các giá trị mặc định nếu không có
       const processedData = {
         id: flashcardData.id || 'unknown',
@@ -36,7 +36,7 @@ function FlashcardReview() {
         answer: 'No answer provided',
         ...flashcardData // Giữ các trường khác
       };
-      
+
       // If backend still returns data with only content field, extract question and answer
       if (flashcardData.content) {
         // Handle legacy format: split content into question and answer if needed
@@ -48,16 +48,16 @@ function FlashcardReview() {
           processedData.question = flashcardData.content;
         }
       }
-      
+
       // Nếu có sẵn question và answer, sử dụng chúng
       if (flashcardData.question) {
         processedData.question = flashcardData.question;
       }
-      
+
       if (flashcardData.answer) {
         processedData.answer = flashcardData.answer;
       }
-      
+
       setFlashcard(processedData);
       setIsFlipped(false);
     } catch (error) {
@@ -71,7 +71,7 @@ function FlashcardReview() {
     try {
       await updateFlashcard(flashcard.id, { ...flashcard, status });
       toast.success(`Marked as ${status}!`);
-      
+
       // Cập nhật thống kê
       setStats(prevStats => ({
         ...prevStats,
@@ -79,14 +79,14 @@ function FlashcardReview() {
         known: status === 'KNOWN' ? prevStats.known + 1 : prevStats.known,
         learning: status === 'LEARN' ? prevStats.learning + 1 : prevStats.learning
       }));
-      
+
       fetchRandomFlashcard(moduleId);
     } catch (error) {
       toast.error('Error updating flashcard!');
       console.error('Error updating flashcard:', error);
     }
   };
-  
+
   // Hiển thị trang kết quả học tập
   const renderResults = () => (
     <motion.div
@@ -95,28 +95,28 @@ function FlashcardReview() {
       className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg text-center"
     >
       <h2 className="text-2xl font-bold text-primary mb-6">Học tập hoàn thành!</h2>
-      
+
       <div className="bg-gray-50 p-6 rounded-lg mb-6">
         <div className="text-lg mb-4">Thống kê học tập của bạn:</div>
-        
+
         <div className="grid grid-cols-3 gap-4 text-center">
           <div className="bg-blue-50 p-4 rounded-lg">
             <div className="text-2xl font-bold text-blue-600">{stats.total}</div>
             <div className="text-sm text-gray-600">Tổng số</div>
           </div>
-          
+
           <div className="bg-green-50 p-4 rounded-lg">
             <div className="text-2xl font-bold text-green-600">{stats.known}</div>
             <div className="text-sm text-gray-600">Đã biết</div>
           </div>
-          
+
           <div className="bg-yellow-50 p-4 rounded-lg">
             <div className="text-2xl font-bold text-yellow-600">{stats.learning}</div>
             <div className="text-sm text-gray-600">Cần học lại</div>
           </div>
         </div>
       </div>
-      
+
       <div className="flex justify-center gap-4">
         <motion.button
           whileHover={{ scale: 1.05 }}
@@ -136,10 +136,10 @@ function FlashcardReview() {
 
   if (!flashcard) {
     // Nếu đã học ít nhất một flashcard, hiển thị kết quả
-    // if (stats.total > 0) {
+    if (stats.total > 0) {
       return renderResults();
-    // }
-    
+    }
+
     // Nếu chưa học flashcard nào
     return (
       <motion.div
@@ -161,19 +161,19 @@ function FlashcardReview() {
     >
 
       <div className="flex items-center mb-4">
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                type="button"
-                onClick={() => navigate(`/study-modules/${moduleId}`)}
-                className="flex items-center justify-center w-10 h-10 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 hover:text-gray-800 transition-all shadow-sm"
-                title="Back to Module"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-              </motion.button>
-            </div>
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          type="button"
+          onClick={() => navigate(`/study-modules/${moduleId}`)}
+          className="flex items-center justify-center w-10 h-10 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 hover:text-gray-800 transition-all shadow-sm"
+          title="Back to Module"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+        </motion.button>
+      </div>
 
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold text-primary">Review Flashcard</h2>
