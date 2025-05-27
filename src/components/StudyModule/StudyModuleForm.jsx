@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 import { createStudyModule } from '../../services/api';
 
 function StudyModuleForm() {
+  const navigate = useNavigate();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
 
@@ -13,10 +15,10 @@ function StudyModuleForm() {
       return;
     }
     try {
-      await createStudyModule({ name, description });
-      setName('');
-      setDescription('');
+      const response = await createStudyModule({ name, description });
+      const moduleId = response.data.id;
       toast.success('Study module created successfully!');
+      navigate(`/study-modules/${moduleId}`);
     } catch (error) {
       toast.error('Error creating study module!');
       console.error('Error creating study module:', error);

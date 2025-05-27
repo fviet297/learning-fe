@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { getRandomFlashcard, updateFlashcard } from '../../services/api';
 import { FiRefreshCw } from 'react-icons/fi';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 
 function FlashcardReview() {
   const navigate = useNavigate();
@@ -16,7 +16,7 @@ function FlashcardReview() {
     learning: 0
   });
 
-  const fetchRandomFlashcard = async () => {
+  const fetchRandomFlashcard = async (moduleId) => {
     try {
       const response = await getRandomFlashcard(moduleId);
       // Kiểm tra xem response.data có tồn tại không
@@ -80,7 +80,7 @@ function FlashcardReview() {
         learning: status === 'LEARN' ? prevStats.learning + 1 : prevStats.learning
       }));
       
-      fetchRandomFlashcard();
+      fetchRandomFlashcard(moduleId);
     } catch (error) {
       toast.error('Error updating flashcard!');
       console.error('Error updating flashcard:', error);
@@ -131,21 +131,21 @@ function FlashcardReview() {
   );
 
   useEffect(() => {
-    fetchRandomFlashcard();
+    fetchRandomFlashcard(moduleId);
   }, []);
 
   if (!flashcard) {
     // Nếu đã học ít nhất một flashcard, hiển thị kết quả
-    if (stats.total > 0) {
+    // if (stats.total > 0) {
       return renderResults();
-    }
+    // }
     
     // Nếu chưa học flashcard nào
     return (
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg text-center text-gray-500"
+        className="mx-auto bg-white p-6 rounded-lg shadow-lg text-center text-gray-500"
       >
         Không có flashcard nào để ôn tập.
       </motion.div>
@@ -157,15 +157,31 @@ function FlashcardReview() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg"
+      className="mx-auto bg-white p-6 rounded-lg shadow-lg"
     >
+
+      <div className="flex items-center mb-4">
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                type="button"
+                onClick={() => navigate(`/study-modules/${moduleId}`)}
+                className="flex items-center justify-center w-10 h-10 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 hover:text-gray-800 transition-all shadow-sm"
+                title="Back to Module"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+              </motion.button>
+            </div>
+
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold text-primary">Review Flashcard</h2>
         <motion.button
           whileHover={{ scale: 1.05, rotate: 180 }}
           whileTap={{ scale: 0.95 }}
           initial={{ rotate: 0 }}
-          onClick={fetchRandomFlashcard}
+          onClick={() => fetchRandomFlashcard(moduleId)}
           className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
           title="Get another flashcard"
         >

@@ -71,7 +71,20 @@ function StudyModuleListPage() {
       transition={{ duration: 0.5 }}
       className="max-w-4xl mx-auto p-6"
     >
-      <h2 className="text-2xl font-semibold mb-6 text-primary">Study Modules</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-semibold text-primary">Study Modules</h2>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => navigate('/create-study-module')}
+          className="bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded-md shadow-sm flex items-center gap-2 transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          Create New Module
+        </motion.button>
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {modules.map((module) => (
