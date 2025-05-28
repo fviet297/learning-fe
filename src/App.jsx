@@ -1,6 +1,8 @@
 import React from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicRoute from './components/PublicRoute';
@@ -22,6 +24,7 @@ function App() {
   const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
   return (
     <AuthProvider>
+      <ToastContainer />
       {!isAuthPage ? (
         <Layout>
           <AnimatePresence>

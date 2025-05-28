@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const API_URL = 'http://localhost:8080/api';
 
@@ -31,7 +33,16 @@ api.interceptors.response.use(
       window.location.href = '/login';
       
       // Hiển thị thông báo nếu cần
-      alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+      toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', {
+        position: 'top-right',
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: 'light',
+      });
     }
     return Promise.reject(error);
   }
