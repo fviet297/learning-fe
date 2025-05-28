@@ -125,7 +125,7 @@ export const submitQuiz = async (moduleId, submission) => {
 };
 
 export const createStudyModule = async (studyModule) => {
-  const response = await api.post(`${API_URL}/study-modules`, studyModule);
+  const response = await api.post('/study-modules', studyModule);
   return response.data;
 };
 
@@ -142,7 +142,7 @@ export const getAllStudyModules = async () => {
 
 export const getStudyModuleById = async (moduleId) => {
   try {
-    const response = await api.get(`${API_URL}/study-modules/${moduleId}`);
+    const response = await api.get(`/study-modules/${moduleId}`);
     return response.data;
   } catch (error) {
     throw error;

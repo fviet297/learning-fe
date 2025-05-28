@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
-import { getRandomFlashcard, updateFlashcard } from '../../services/api';
+import { getRandomFlashcard, updateFlashcardStatus } from '../../services/api';
 import { FiRefreshCw } from 'react-icons/fi';
 import { useParams, useNavigate } from 'react-router-dom';
 
@@ -69,7 +69,7 @@ function FlashcardReview() {
   const handleStatusUpdate = async (status) => {
     if (!flashcard) return;
     try {
-      await updateFlashcardStatus(flashcard.id, { ...flashcard, status });
+      await updateFlashcardStatus (flashcard.id, { ...flashcard, status });
       toast.success(`Marked as ${status}!`);
 
       // Cập nhật thống kê
