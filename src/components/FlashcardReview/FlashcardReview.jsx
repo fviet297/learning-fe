@@ -69,7 +69,7 @@ function FlashcardReview() {
   const handleStatusUpdate = async (status) => {
     if (!flashcard) return;
     try {
-      await updateFlashcard(flashcard.id, { ...flashcard, status });
+      await updateFlashcardStatus(flashcard.id, { ...flashcard, status });
       toast.success(`Marked as ${status}!`);
 
       // Cập nhật thống kê

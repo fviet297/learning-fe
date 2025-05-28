@@ -81,8 +81,13 @@ export const getFlashcardsByModule = async (moduleId) => {
   return response.data;
 };
 
-export const updateFlashcard = async (id, flashcard) => {
+export const updateFlashcardStatus = async (id, flashcard) => {
   const response = await api.put(`/flashcards/${id}`, flashcard);
+  return response.data;
+};
+
+export const updateFlashcard = async (flashcard) => {
+  const response = await api.put('/flashcards', flashcard);
   return response.data;
 };
 

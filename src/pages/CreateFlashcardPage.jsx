@@ -2,15 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
-import { createBulkFlashcards, getFlashcardsByModule, deleteFlashcard } from '../services/api';
+import { createBulkFlashcards, getFlashcardsByModule, deleteFlashcard, updateFlashcard } from '../services/api';
 
 function CreateFlashcardPage() {
   const [newFlashcards, setNewFlashcards] = useState([{ question: '', answer: '' }]);
   const [existingFlashcards, setExistingFlashcards] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [editMode, setEditMode] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
-  const [editingFlashcard, setEditingFlashcard] = useState(null);
+  const [editingContent, setEditingContent] = useState({ question: '', answer: '' });
   const { moduleId } = useParams();
   const navigate = useNavigate();
   
@@ -40,8 +40,7 @@ function CreateFlashcardPage() {
   };
 
   const handleAddFlashcard = () => {
-    setEditMode(false);
-    setEditingFlashcard(null);
+    setEditingId(null);
     setShowForm(true);
     setNewFlashcards([{ question: '', answer: '' }]);
   };
@@ -61,15 +60,12 @@ function CreateFlashcardPage() {
   };
   
   const handleEditFlashcard = (flashcard) => {
-    setEditMode(true);
-    setShowForm(true);
-    setEditingFlashcard(flashcard);
-    const editableFlashcard = {
-      id: flashcard.id,
+    setEditingId(flashcard.id);
+    setEditingContent({
       question: flashcard.question,
-      answer: flashcard.answer
-    };
-    setNewFlashcards([editableFlashcard]);
+      answer: flashcard.answer,
+      status: flashcard.status || 'NEW'
+    });
   };
   
   const handleDeleteFlashcard = async (flashcardId) => {
@@ -86,13 +82,11 @@ function CreateFlashcardPage() {
   };
   
   const handleCancelEdit = () => {
-    setEditMode(false);
-    setShowForm(false);
-    setEditingFlashcard(null);
-    setNewFlashcards([{ question: '', answer: '' }]);
+    setEditingId(null);
+    setEditingContent({ question: '', answer: '' });
   };
 
-  const handleSubmit = async (e) => {
+  const handleCreateFlashcards = async (e) => {
     e.preventDefault();
     const validFlashcards = newFlashcards.filter(card => card.question.trim() && card.answer.trim());
     if (validFlashcards.length === 0) {
@@ -101,26 +95,22 @@ function CreateFlashcardPage() {
     }
 
     try {
-      // Structure payload according to required format
+      // Create new flashcards
       const payload = {
         studyModuleId: moduleId,
         flashcardRequests: validFlashcards.map(card => ({
-          ...(editMode && card.id ? { id: card.id } : {}),
           question: card.question,
           answer: card.answer
         }))
       };
-      
       await createBulkFlashcards(payload);
-      toast.success(`${validFlashcards.length} flashcard(s) ${editMode ? 'updated' : 'created'} successfully!`);
-      setEditMode(false);
+      toast.success(`${validFlashcards.length} flashcard(s) created successfully!`);
       setShowForm(false);
-      setEditingFlashcard(null);
       setNewFlashcards([{ question: '', answer: '' }]);
       fetchFlashcards(); // Refresh the list
     } catch (error) {
-      toast.error(`Error ${editMode ? 'updating' : 'creating'} flashcards!`);
-      console.error(`Error ${editMode ? 'updating' : 'creating'} flashcards:`, error);
+      console.error('Error creating flashcards:', error);
+      toast.error('Error creating flashcards!');
     }
   };
 
@@ -168,42 +158,97 @@ function CreateFlashcardPage() {
         ) : existingFlashcards.length === 0 ? (
           <p className="text-center text-gray-500 py-4">No flashcards yet. Create your first flashcard!</p>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {existingFlashcards.map((flashcard) => (
               <motion.div 
                 key={flashcard.id} 
-                className="p-4 border-2 border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 bg-gray-50"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+                className="p-4 border-2 border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 bg-white"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className="flex justify-between">
-                  <h3 className="text-lg font-medium mb-3 text-primary">{flashcard.question}</h3>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleEditFlashcard(flashcard)}
-                      className="flex items-center justify-center w-24 h-8 bg-blue-100 text-blue-600 rounded-md border border-blue-300 hover:bg-blue-200 transition-colors shadow-sm"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 0L11.5 10.5M14 14l-4 1 1-4 9.5-9.5a2 2 0 012.828 0"/>
-                      </svg>
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteFlashcard(flashcard.id)}
-                      className="flex items-center justify-center w-24 h-8 bg-red-100 text-red-600 rounded-md border border-red-300 hover:bg-red-200 transition-colors shadow-sm"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                      Delete
-                    </button>
+                {editingId === flashcard.id ? (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-lg font-medium text-primary mb-2">Question:</label>
+                      <textarea
+                        value={editingContent.question}
+                        onChange={(e) => setEditingContent(prev => ({ ...prev, question: e.target.value }))}
+                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary bg-white"
+                        rows="3"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-lg font-medium text-primary mb-2">Answer:</label>
+                      <textarea
+                        value={editingContent.answer}
+                        onChange={(e) => setEditingContent(prev => ({ ...prev, answer: e.target.value }))}
+                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary bg-white"
+                        rows="3"
+                      />
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={handleCancelEdit}
+                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors font-medium"
+                      >
+                        Cancel
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={async () => {
+                          try {
+                            await updateFlashcard({
+                              id: flashcard.id,
+                              question: editingContent.question,
+                              answer: editingContent.answer,
+                              status: editingContent.status || 'LEARN'
+                            });
+                            toast.success('Flashcard updated successfully!');
+                            setEditingId(null);
+                            fetchFlashcards();
+                          } catch (error) {
+                            console.error('Error updating flashcard:', error);
+                            toast.error('Error updating flashcard!');
+                          }
+                        }}
+                        className="px-4 py-2 bg-secondary text-white rounded-md hover:bg-blue-600 transition-colors font-medium"
+                      >
+                        Save
+                      </motion.button>
+                    </div>
                   </div>
-                </div>
-                
-                <div className="p-3 mt-2 bg-white border border-gray-200 rounded-md">
-                  <p className="text-gray-800">{flashcard.answer}</p>
-                </div>
+                ) : (
+                  <div>
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="text-lg font-medium text-primary">Question:</h3>
+                      <div className="flex gap-2">
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => handleEditFlashcard(flashcard)}
+                          className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors font-medium"
+                        >
+                          Edit
+                        </motion.button>
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => handleDeleteFlashcard(flashcard.id)}
+                          className="px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors font-medium"
+                        >
+                          Delete
+                        </motion.button>
+                      </div>
+                    </div>
+                    <p className="text-gray-800 mb-4 whitespace-pre-wrap">{flashcard.question}</p>
+                    <h3 className="text-lg font-medium text-primary mb-2">Answer:</h3>
+                    <p className="text-gray-800 whitespace-pre-wrap">{flashcard.answer}</p>
+                  </div>
+                )}
               </motion.div>
             ))}
           </div>
@@ -219,10 +264,10 @@ function CreateFlashcardPage() {
           className="border-t-2 pt-6 mt-8"
         >
           <h3 className="text-xl font-semibold mb-4 text-primary">
-            {editMode ? 'Edit Flashcard' : 'Add New Flashcard'}
+            Add New Flashcard
           </h3>
           
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleCreateFlashcards} className="space-y-6">
             {newFlashcards.map((flashcard, index) => (
               <motion.div 
                 key={index} 
@@ -232,7 +277,7 @@ function CreateFlashcardPage() {
                 transition={{ duration: 0.3 }}
               >
                 <h3 className="text-lg font-medium mb-3 text-primary">
-                  {editMode ? 'Edit Flashcard' : `Flashcard #${index + 1}`}
+                  Flashcard #{index + 1}
                 </h3>
                 <div className="space-y-4">
                   <div>
@@ -266,17 +311,15 @@ function CreateFlashcardPage() {
               </motion.div>
             ))}
 
-            {!editMode && (
-              <motion.button
-                type="button"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleAddAnotherFlashcard}
-                className="w-full bg-gray-200 text-gray-700 px-6 py-3 rounded-md hover:bg-gray-300 transition-colors font-medium"
-              >
-                + Add Another Flashcard
-              </motion.button>
-            )}
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleAddAnotherFlashcard}
+              className="w-full bg-gray-200 text-gray-700 px-6 py-3 rounded-md hover:bg-gray-300 transition-colors font-medium"
+            >
+              + Add Another Flashcard
+            </motion.button>
 
             <div className="flex justify-end gap-4">
               <motion.button
@@ -294,7 +337,7 @@ function CreateFlashcardPage() {
                 type="submit"
                 className="bg-secondary text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-colors"
               >
-                {editMode ? 'Save Changes' : 'Create Flashcards'}
+                Create Flashcards
               </motion.button>
             </div>
           </form>
