@@ -158,3 +158,8 @@ export const deleteModule = async (moduleId) => {
   const response = await api.delete(`/study-modules/${moduleId}`);
   return response.data;
 };
+
+export const updateModule = async (moduleId, moduleData) => {
+  const response = await api.put(`/study-modules/${moduleId}`, moduleData);
+  return response.data;
+};

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { getAllStudyModule, deleteModule } from '../services/api';
-import { FiTrash2 } from 'react-icons/fi';
+import { FiTrash2, FiEdit } from 'react-icons/fi';
 
 function StudyModuleListPage() {
   const [modules, setModules] = useState([]);
@@ -73,6 +73,11 @@ function StudyModuleListPage() {
     }
   };
 
+  const handleEditModule = (e, moduleId) => {
+    e.stopPropagation(); // Ngăn chặn sự kiện click lan tỏa đến phần tử cha
+    navigate(`/edit-study-module/${moduleId}`);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -111,15 +116,26 @@ function StudyModuleListPage() {
             className="bg-white p-4 rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow relative"
             onClick={() => handleModuleClick(module.id)}
           >
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className="absolute top-2 right-2 p-2 rounded-full bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
-              onClick={(e) => handleDeleteModule(e, module.id)}
-              title="Xóa module"
-            >
-              <FiTrash2 size={16} />
-            </motion.button>
+            <div className="absolute top-2 right-2 flex gap-2">
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="p-2 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-100 transition-colors"
+                onClick={(e) => handleEditModule(e, module.id)}
+                title="Chỉnh sửa module"
+              >
+                <FiEdit size={16} />
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="p-2 rounded-full bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
+                onClick={(e) => handleDeleteModule(e, module.id)}
+                title="Xóa module"
+              >
+                <FiTrash2 size={16} />
+              </motion.button>
+            </div>
             <h3 className="text-lg font-semibold mb-2 pr-8">{module.name}</h3>
             <p className="text-gray-600">{module.description}</p>
           </motion.div>
