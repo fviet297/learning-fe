@@ -343,37 +343,24 @@ function CreateFlashcardPage() {
           </form>
         </motion.div>
       )}
-    </motion.div>
-  );
-              whileTap={{ scale: 0.95 }}
-              onClick={handleAddAnotherFlashcard}
-              className="w-full bg-gray-200 text-gray-700 px-6 py-3 rounded-md hover:bg-gray-300 transition-colors font-medium"
-            >
-              + Add Another Flashcard
-            </motion.button>
+      <motion.button
+        whileTap={{ scale: 0.95 }}
+        onClick={handleAddAnotherFlashcard}
+        className="w-full bg-gray-200 text-gray-700 px-6 py-3 rounded-md hover:bg-gray-300 transition-colors font-medium"
+      >
+        + Add Another Flashcard
+      </motion.button>
 
-            <div className="flex justify-end gap-4">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                type="button"
-                onClick={handleCancelEdit}
-                className="px-6 py-2 rounded-md font-medium text-gray-600 hover:bg-gray-100 transition-colors"
-              >
-                Cancel
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                type="submit"
-                className="bg-secondary text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-colors"
-              >
-                Create Flashcards
-              </motion.button>
-            </div>
-          </form>
-        </motion.div>
-      )}
+      <div className="flex justify-end gap-4">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          type="button"
+          onClick={handleCancelEdit}
+        >
+          Cancel
+        </motion.button>
+      </div>
     </motion.div>
   );
 }
