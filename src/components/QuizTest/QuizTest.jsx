@@ -37,7 +37,7 @@ function QuizTest() {
     setResults([]);
     setShowingResult(false);
     setLastAnswerCorrect(null);
-    
+
     // Re-fetch and shuffle questions
     try {
       setLoading(true);
@@ -119,7 +119,7 @@ function QuizTest() {
 
     const currentQuestion = quiz.questions[currentQuestionIndex];
     const isCorrect = answerId === currentQuestion.correctAnswer;
-    
+
     // Cập nhật kết quả
     const newResult = {
       questionId: questionId,
@@ -133,40 +133,40 @@ function QuizTest() {
     setShowingResult(true);
     setLastAnswerCorrect(isCorrect);
 
-   // Cập nhật điểm ngay lập tức
-  let newScore = currentScore;
-  if (isCorrect) {
-    newScore = currentScore + 10;
-    setCurrentScore(newScore);
-  }
-
-  // Xử lý sau 2 giây
-  setTimeout(async () => {
-    if (currentQuestionIndex < quiz.questions.length - 1) {
-      // Nếu không phải câu cuối, chuyển sang câu tiếp theo
-      setShowingResult(false);
-      setLastAnswerCorrect(null);
-      setCurrentQuestionIndex(prev => prev + 1);
-    } else {
-      // Nếu là câu cuối, gửi kết quả lên API và hiển thị màn hình hoàn thành
-      try {
-        const quizResult = {
-          userId: localStorage.getItem('userId'),
-          studyModuleId: moduleId,
-          score: newScore  // Sử dụng newScore thay vì currentScore
-        };
-        await submitQuizResult(quizResult);
-        setIsSubmitted(true);
-        toast.success(`Quiz completed! Final score: ${newScore} points`);
-      } catch (error) {
-        console.error('Error submitting quiz result:', error);
-        toast.error('Failed to save quiz result');
-        // Vẫn hiển thị kết quả cho user dù có lỗi
-        setIsSubmitted(true);
-      }
+    // Cập nhật điểm ngay lập tức
+    let newScore = currentScore;
+    if (isCorrect) {
+      newScore = currentScore + 10;
+      setCurrentScore(newScore);
     }
-  }, 2000);
-};
+
+    // Xử lý sau 2 giây
+    setTimeout(async () => {
+      if (currentQuestionIndex < quiz.questions.length - 1) {
+        // Nếu không phải câu cuối, chuyển sang câu tiếp theo
+        setShowingResult(false);
+        setLastAnswerCorrect(null);
+        setCurrentQuestionIndex(prev => prev + 1);
+      } else {
+        // Nếu là câu cuối, gửi kết quả lên API và hiển thị màn hình hoàn thành
+        try {
+          const quizResult = {
+            userId: localStorage.getItem('userId'),
+            studyModuleId: moduleId,
+            score: newScore  // Sử dụng newScore thay vì currentScore
+          };
+          await submitQuizResult(quizResult);
+          setIsSubmitted(true);
+          toast.success(`Quiz completed! Final score: ${newScore} points`);
+        } catch (error) {
+          console.error('Error submitting quiz result:', error);
+          toast.error('Failed to save quiz result');
+          // Vẫn hiển thị kết quả cho user dù có lỗi
+          setIsSubmitted(true);
+        }
+      }
+    }, 2000);
+  };
   const handleSubmit = async () => {
     if (!moduleId) {
       toast.error('Module ID is missing');
@@ -175,7 +175,7 @@ function QuizTest() {
 
     try {
       setSubmitting(true);
-      
+
       // Lấy user ID từ localStorage hoặc context
       const userId = localStorage.getItem('userId');
       if (!userId) {
@@ -196,7 +196,7 @@ function QuizTest() {
       for (const question of quiz.questions) {
         const selectedAnswer = selectedAnswers[question.id];
         const isCorrect = selectedAnswer === question.correctAnswer;
-        
+
         quizResults.push({
           questionId: question.id,
           question: question.text,
@@ -211,12 +211,12 @@ function QuizTest() {
       }
 
       const finalScore = (totalCorrect / quiz.questions.length) * 100;
-      
+
       // Cập nhật UI ngay lập tức
       setScore(finalScore);
       setResults(quizResults);
       setIsSubmitted(true);
-      
+
       toast.success(`Quiz completed! Your score: ${finalScore.toFixed(1)}%`);
 
       // Gửi kết quả lên API
@@ -283,6 +283,21 @@ function QuizTest() {
       transition={{ duration: 0.5 }}
       className="max-w-4xl mx-auto p-6"
     >
+
+      <div className="flex items-center mb-4">
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          type="button"
+          onClick={() => navigate(`/study-modules/${moduleId}`)}
+          className="flex items-center justify-center w-10 h-10 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 hover:text-gray-800 transition-all shadow-sm"
+          title="Back to Module"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+        </motion.button>
+      </div>
       {!isSubmitted ? (
         // Hiển thị câu hỏi và đáp án
         <>
@@ -308,7 +323,7 @@ function QuizTest() {
                 const isSelected = selectedAnswers[currentQuestion.id] === answer.id;
                 const showResult = showingResult;
                 const isCorrect = answer.id === currentQuestion.correctAnswer;
-                
+
                 let buttonClass = 'w-full text-left p-4 rounded-lg border-2 transition-colors';
                 if (showResult) {
                   if (isCorrect) {
@@ -323,7 +338,7 @@ function QuizTest() {
                 } else {
                   buttonClass += ' border-gray-200 hover:border-primary/50';
                 }
-                
+
                 return (
                   <motion.button
                     key={answer.id}
