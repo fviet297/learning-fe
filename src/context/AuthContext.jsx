@@ -40,9 +40,12 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await login({ username, password });
       const { token, userId } = response.data;
+      
       localStorage.setItem('token', token);
       localStorage.setItem('userId', userId);
+      
       setCurrentUser({ token, userId });
+      
       toast.success('Logged in successfully!');
       navigate('/');
     } catch (error) {

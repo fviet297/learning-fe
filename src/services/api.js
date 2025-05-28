@@ -46,13 +46,33 @@ api.interceptors.response.use(
   }
 );
 
+const encryptPassword = (password) => {
+  try {
+    return btoa(password + import.meta.env.VITE_SALT_KEY);
+  } catch (e) {
+    console.error('Error encrypting password:', e);
+    return password; 
+  }
+};
+
 export const login = async (credentials) => {
-  const response = await api.post('/auth/login', credentials);
-  return response.data;
+    const securePayload = { 
+      username: credentials.username,
+      password: encryptPassword(credentials.password)
+    };
+    
+    const response = await api.post('/auth/login', securePayload);
+    return response.data;
 };
 
 export const register = async (userData) => {
-  const response = await api.post('/auth/register', userData);
+  const securePayload = { 
+    username: userData.username,
+    password: encryptPassword(userData.password),
+    email: userData.email,
+    fullName: userData.fullName
+  };
+  const response = await api.post('/auth/register', securePayload);
   return response.data;
 };
 
