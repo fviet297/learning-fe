@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
-import { getAllStudyModule } from '../services/api';
+import { getAllStudyModule, deleteModule } from '../services/api';
+import { FiTrash2 } from 'react-icons/fi';
 
 function StudyModuleListPage() {
   const [modules, setModules] = useState([]);
@@ -56,6 +57,22 @@ function StudyModuleListPage() {
     navigate(`/study-modules/${moduleId}`, { replace: false });
   };
 
+  const handleDeleteModule = async (e, moduleId) => {
+    e.stopPropagation(); // Ngăn chặn sự kiện click lan tỏa đến phần tử cha
+    
+    if (window.confirm('Bạn có chắc chắn muốn xóa module này không?')) {
+      try {
+        await deleteModule(moduleId);
+        toast.success('Module đã được xóa thành công!');
+        // Cập nhật lại danh sách module sau khi xóa
+        fetchModules(currentPage);
+      } catch (error) {
+        toast.error('Không thể xóa module. Vui lòng thử lại sau!');
+        console.error('Error deleting module:', error);
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -91,36 +108,24 @@ function StudyModuleListPage() {
           <motion.div
             key={module.id}
             whileHover={{ scale: 1.02 }}
-            className="bg-white p-4 rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow"
+            className="bg-white p-4 rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow relative"
             onClick={() => handleModuleClick(module.id)}
           >
-            <h3 className="text-lg font-semibold mb-2">{module.name}</h3>
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="absolute top-2 right-2 p-2 rounded-full bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
+              onClick={(e) => handleDeleteModule(e, module.id)}
+              title="Xóa module"
+            >
+              <FiTrash2 size={16} />
+            </motion.button>
+            <h3 className="text-lg font-semibold mb-2 pr-8">{module.name}</h3>
             <p className="text-gray-600">{module.description}</p>
           </motion.div>
         ))}
       </div>
 
-      {/* Load More Button */}
-      {currentPage < totalPages - 1 && (
-        <div className="flex justify-center mt-6">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="bg-secondary text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-colors flex items-center gap-2"
-            onClick={handleLoadMore}
-            disabled={loadingMore}
-          >
-            {loadingMore ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                Loading...
-              </>
-            ) : (
-              'Load More'
-            )}
-          </motion.button>
-        </div>
-      )}
 
       {/* Pagination */}
       {totalPages > 1 && (

@@ -153,3 +153,8 @@ export const getAllStudyModule = async (page = 0, size = 10) => {
   const response = await api.get(`/study-modules?page=${page}&size=${size}`);
   return response.data;
 }; 
+
+export const deleteModule = async (moduleId) => {
+  const response = await api.delete(`/study-modules/${moduleId}`);
+  return response.data;
+};
