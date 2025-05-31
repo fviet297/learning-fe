@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { getAllStudyModule, deleteModule } from '../services/api';
 import { FiTrash2, FiEdit } from 'react-icons/fi';
+import ConfirmModal from '../components/common/ConfirmModal';
 
 function StudyModuleListPage() {
   const [modules, setModules] = useState([]);
@@ -11,6 +12,8 @@ function StudyModuleListPage() {
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [moduleToDelete, setModuleToDelete] = useState(null);
   const navigate = useNavigate();
 
   const fetchModules = async (page = 0, append = false) => {
@@ -57,20 +60,27 @@ function StudyModuleListPage() {
     navigate(`/study-modules/${moduleId}`, { replace: false });
   };
 
-  const handleDeleteModule = async (e, moduleId) => {
+  const handleDeleteModule = (e, moduleId) => {
     e.stopPropagation(); // Ngăn chặn sự kiện click lan tỏa đến phần tử cha
+    setModuleToDelete(moduleId);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDeleteModule = async () => {
+    if (!moduleToDelete) return;
     
-    if (window.confirm('Bạn có chắc chắn muốn xóa module này không?')) {
-      try {
-        await deleteModule(moduleId);
-        toast.success('Module đã được xóa thành công!');
-        // Cập nhật lại danh sách module sau khi xóa
-        fetchModules(currentPage);
-      } catch (error) {
-        toast.error('Không thể xóa module. Vui lòng thử lại sau!');
-        console.error('Error deleting module:', error);
-      }
+    try {
+      await deleteModule(moduleToDelete);
+      toast.success('Module đã được xóa thành công!');
+      // Cập nhật lại danh sách module sau khi xóa
+      fetchModules(currentPage);
+    } catch (error) {
+      toast.error('Không thể xóa module. Vui lòng thử lại sau!');
+      console.error('Error deleting module:', error);
     }
+    
+    // Reset state
+    setModuleToDelete(null);
   };
 
   const handleEditModule = (e, moduleId) => {
@@ -93,6 +103,13 @@ function StudyModuleListPage() {
       transition={{ duration: 0.5 }}
       className="max-w-4xl mx-auto p-6"
     >
+      <ConfirmModal 
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={confirmDeleteModule}
+        title="Xác nhận xóa"
+        message="Bạn có chắc chắn muốn xóa module này không? Hành động này không thể hoàn tác."
+      />
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-semibold text-primary">Study Modules</h2>
         <motion.button
