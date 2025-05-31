@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
@@ -16,6 +16,7 @@ function CreateFlashcardPage() {
   const [generatingFlashcards, setGeneratingFlashcards] = useState(false);
   const { moduleId } = useParams();
   const navigate = useNavigate();
+  const formRef = useRef(null);
   
   // Fetch existing flashcards when component mounts
   useEffect(() => {
@@ -46,6 +47,13 @@ function CreateFlashcardPage() {
     setEditingId(null);
     setShowForm(true);
     setNewFlashcards([{ question: '', answer: '' }]);
+    
+    // Đợi một chút để form hiển thị trước khi cuộn đến
+    setTimeout(() => {
+      if (formRef.current) {
+        formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
   };
   
   const handleAddAnotherFlashcard = () => {
@@ -193,6 +201,13 @@ function CreateFlashcardPage() {
               onClick={() => {
                 setActiveTab('fromText');
                 setShowForm(true);
+                
+                // Đợi một chút để form hiển thị trước khi cuộn đến
+                setTimeout(() => {
+                  if (formRef.current) {
+                    formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }, 100);
               }}
               className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors"
             >
@@ -308,6 +323,7 @@ function CreateFlashcardPage() {
       {/* Form for creating/editing flashcards */}
       {showForm && (
         <motion.div
+          ref={formRef}
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
