@@ -146,37 +146,31 @@ function StudyModuleListPage() {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center mt-6 gap-2">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className={`px-4 py-2 rounded-md ${
-              currentPage === 0
-                ? 'bg-gray-300 cursor-not-allowed'
-                : 'bg-secondary text-white hover:bg-blue-600'
-            }`}
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 0}
-          >
-            Previous
-          </motion.button>
+          {currentPage > 0 && (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="px-4 py-2 rounded-md bg-secondary text-white hover:bg-blue-600"
+              onClick={() => handlePageChange(currentPage - 1)}
+            >
+              Previous
+            </motion.button>
+          )}
           
           <span className="px-4 py-2">
-            Page {currentPage + 1} of {totalPages}
+             {currentPage + 1} / {totalPages}
           </span>
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className={`px-4 py-2 rounded-md ${
-              currentPage === totalPages - 1
-                ? 'bg-gray-300 cursor-not-allowed'
-                : 'bg-secondary text-white hover:bg-blue-600'
-            }`}
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages - 1}
-          >
-            Next
-          </motion.button>
+          {currentPage < totalPages - 1 && (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="px-4 py-2 rounded-md bg-secondary text-white hover:bg-blue-600"
+              onClick={() => handlePageChange(currentPage + 1)}
+            >
+              Next
+            </motion.button>
+          )}
         </div>
       )}
     </motion.div>

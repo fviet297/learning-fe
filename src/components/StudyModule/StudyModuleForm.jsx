@@ -47,16 +47,26 @@ function StudyModuleForm() {
         className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary mb-4"
         rows="4"
       />
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={handleSubmit}
-        className="bg-secondary text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-colors"
-      >
-        Create
-      </motion.button>
+      <div className="flex space-x-4">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={handleSubmit}
+          className="bg-secondary text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-colors"
+        >
+          Create
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => navigate(-1)}
+          className="bg-gray-300 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-400 transition-colors"
+        >
+          Cancel
+        </motion.button>
+      </div>
     </motion.div>
   );
 }
 
-export default StudyModuleForm; 
+export default StudyModuleForm;
