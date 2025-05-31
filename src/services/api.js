@@ -114,6 +114,15 @@ export const deleteFlashcard = async (flashcardId) => {
   return response.data;
 };
 
+export const generateFlashcardsFromContent = async (payload) => {
+  const response = await api.post('/flashcards/gen', payload);
+  return response.data;
+};
+
+export const generateQuizzesFromContent = async (payload) => {
+  const response = await api.post('/quizzes/gen', payload);
+  return response.data;
+};
 
 
 export const createBulkQuizzes = async (payload) => {

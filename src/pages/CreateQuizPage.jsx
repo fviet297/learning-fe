@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
-import { createBulkQuizzes, getQuizzes, deleteQuiz } from '../services/api';
+import { createBulkQuizzes, getQuizzes, deleteQuiz, generateQuizzesFromContent } from '../services/api';
 
 function CreateQuizPage() {
   const [newQuizzes, setNewQuizzes] = useState([
@@ -17,6 +17,9 @@ function CreateQuizPage() {
   const [editMode, setEditMode] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingQuiz, setEditingQuiz] = useState(null);
+  const [activeTab, setActiveTab] = useState('manual'); // 'manual' hoặc 'fromText'
+  const [textContent, setTextContent] = useState('');
+  const [generatingQuizzes, setGeneratingQuizzes] = useState(false);
   const { moduleId } = useParams();
   const navigate = useNavigate();
   
@@ -95,7 +98,16 @@ function CreateQuizPage() {
     setEditMode(false);
     setEditingQuiz(null);
     setShowForm(true);
+    setActiveTab('manual');
     setNewQuizzes([{ question: '', options: ['', '', '', ''], correctAnswer: 0 }]);
+  };
+  
+  const handleAddQuizFromText = () => {
+    setEditMode(false);
+    setEditingQuiz(null);
+    setShowForm(true);
+    setActiveTab('fromText');
+    setTextContent('');
   };
   
   const handleCancelEdit = () => {
@@ -143,6 +155,40 @@ function CreateQuizPage() {
     }
   };
 
+  const handleGenerateQuizzes = async (e) => {
+    e.preventDefault();
+    if (!textContent.trim()) {
+      toast.error('Vui lòng nhập nội dung văn bản để tạo quiz!');
+      return;
+    }
+    
+    try {
+      setGeneratingQuizzes(true);
+      const payload = {
+        studyModuleId: moduleId,
+        quizRequests: [
+          {
+            question: null,
+            options: null,
+            correctAnswer: 0
+          }
+        ],
+        content: textContent
+      };
+      
+      const response = await generateQuizzesFromContent(payload);
+      toast.success('Tạo quiz thành công!');
+      setTextContent('');
+      setActiveTab('manual'); // Chuyển về tab danh sách sau khi tạo thành công
+      fetchQuizzes(); // Cập nhật danh sách quiz
+    } catch (error) {
+      console.error('Lỗi khi tạo quiz từ nội dung:', error);
+      toast.error('Không thể tạo quiz từ nội dung này!');
+    } finally {
+      setGeneratingQuizzes(false);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -169,15 +215,26 @@ function CreateQuizPage() {
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-semibold text-primary">Quizzes</h3>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            type="button"
-            onClick={handleAddQuiz}
-            className="bg-secondary text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-colors"
-          >
-            + Add New Quiz
-          </motion.button>
+          <div className="flex space-x-2">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              type="button"
+              onClick={handleAddQuiz}
+              className="bg-secondary text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-colors"
+            >
+              + Thêm quiz mới
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              type="button"
+              onClick={handleAddQuizFromText}
+              className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors"
+            >
+              Tạo từ văn bản
+            </motion.button>
+          </div>
         </div>
         {loading ? (
           <div className="flex justify-center py-8">
@@ -248,99 +305,171 @@ function CreateQuizPage() {
       {/* Form for creating/editing quizzes */}
       {showForm && (
         <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="border-t-2 pt-6 mt-8"
+          className="bg-gray-50 p-6 rounded-lg shadow-md mb-8"
         >
-          <h3 className="text-xl font-semibold mb-4 text-primary">
-            {editMode ? 'Edit Quiz' : 'Add New Quiz'}
-          </h3>
+          <div className="flex border-b border-gray-200 mb-6">
+            <button
+              className={`py-2 px-4 font-medium ${activeTab === 'manual' ? 'text-secondary border-b-2 border-secondary' : 'text-gray-500'}`}
+              onClick={() => setActiveTab('manual')}
+            >
+              Tạo thủ công
+            </button>
+            <button
+              className={`py-2 px-4 font-medium ${activeTab === 'fromText' ? 'text-secondary border-b-2 border-secondary' : 'text-gray-500'}`}
+              onClick={() => setActiveTab('fromText')}
+            >
+              Tạo từ nội dung văn bản
+            </button>
+          </div>
           
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {newQuizzes.map((quiz, quizIndex) => (
-              <motion.div 
-                key={quizIndex} 
-                className="p-4 border-2 border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 bg-gray-50"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="mb-4">
-                  <label htmlFor={`question-${quizIndex}`} className="block text-gray-700 font-medium mb-2">
-                    Question
-                  </label>
-                  <textarea
-                    id={`question-${quizIndex}`}
-                    value={quiz.question}
-                    onChange={(e) => handleQuestionChange(quizIndex, e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary bg-white"
-                    rows="3"
-                    placeholder="Enter your question..."
-                  />
-                </div>
-
-                <div className="mb-4">
-                  <label className="block text-gray-700 font-medium mb-2">Options</label>
-                  {quiz.options.map((option, optionIndex) => (
-                    <div key={optionIndex} className="mb-2 flex items-center">
-                      <input
-                        type="radio"
-                        id={`quiz-${quizIndex}-option-${optionIndex}`}
-                        name={`quiz-${quizIndex}-correctAnswer`}
-                        checked={quiz.correctAnswer === optionIndex}
-                        onChange={() => handleCorrectAnswerChange(quizIndex, optionIndex)}
-                        className="mr-2"
-                      />
-                      <input
-                        type="text"
-                        value={option}
-                        onChange={(e) => handleOptionChange(quizIndex, optionIndex, e.target.value)}
-                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary bg-white"
-                        placeholder={`Option ${optionIndex + 1}`}
+          {activeTab === 'manual' ? (
+            <>
+              <h3 className="text-xl font-semibold mb-4 text-primary">
+                {editMode ? 'Sửa Quiz' : 'Thêm Quiz Mới'}
+              </h3>
+              
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {newQuizzes.map((quiz, quizIndex) => (
+                  <motion.div 
+                    key={quizIndex} 
+                    className="p-4 border-2 border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 bg-gray-50"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <div className="mb-4">
+                      <label htmlFor={`question-${quizIndex}`} className="block text-gray-700 font-medium mb-2">
+                        Câu hỏi
+                      </label>
+                      <textarea
+                        id={`question-${quizIndex}`}
+                        value={quiz.question}
+                        onChange={(e) => handleQuestionChange(quizIndex, e.target.value)}
+                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary bg-white"
+                        rows="3"
+                        placeholder="Nhập câu hỏi của bạn..."
                       />
                     </div>
-                  ))}
+
+                    <div className="mb-4">
+                      <label className="block text-gray-700 font-medium mb-2">Các lựa chọn</label>
+                      {quiz.options.map((option, optionIndex) => (
+                        <div key={optionIndex} className="mb-2 flex items-center">
+                          <input
+                            type="radio"
+                            id={`quiz-${quizIndex}-option-${optionIndex}`}
+                            name={`quiz-${quizIndex}-correctAnswer`}
+                            checked={quiz.correctAnswer === optionIndex}
+                            onChange={() => handleCorrectAnswerChange(quizIndex, optionIndex)}
+                            className="mr-2"
+                          />
+                          <input
+                            type="text"
+                            value={option}
+                            onChange={(e) => handleOptionChange(quizIndex, optionIndex, e.target.value)}
+                            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary bg-white"
+                            placeholder={`Lựa chọn ${optionIndex + 1}`}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                ))}
+
+                {!editMode && (
+                  <motion.button
+                    type="button"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setNewQuizzes([...newQuizzes, { question: '', options: ['', '', '', ''], correctAnswer: 0 }])}
+                    className="w-full bg-gray-200 text-gray-700 px-6 py-3 rounded-md hover:bg-gray-300 transition-colors font-medium"
+                  >
+                    + Thêm quiz khác
+                  </motion.button>
+                )}
+
+                <div className="flex justify-end gap-4">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    type="button"
+                    onClick={handleCancelEdit}
+                    className="px-6 py-2 rounded-md font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+                  >
+                    Hủy
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    type="submit"
+                    className="bg-secondary text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-colors"
+                  >
+                    {editMode ? 'Lưu thay đổi' : 'Tạo quiz'}
+                  </motion.button>
                 </div>
-              </motion.div>
-            ))}
+              </form>
+            </>
+          ) : (
+            <>
+              <h3 className="text-xl font-semibold mb-4 text-primary">
+                Tạo quiz từ nội dung văn bản
+              </h3>
+              
+              <form onSubmit={handleGenerateQuizzes} className="space-y-6">
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="text-content" className="block text-gray-700 font-medium mb-2">
+                      Nội dung văn bản
+                    </label>
+                    <textarea
+                      id="text-content"
+                      value={textContent}
+                      onChange={(e) => setTextContent(e.target.value)}
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary bg-white"
+                      placeholder="Nhập nội dung văn bản để tạo quiz..."
+                      rows="10"
+                      required
+                    />
+                  </div>
+                </div>
 
-            {!editMode && (
-              <motion.button
-                type="button"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setNewQuizzes([...newQuizzes, { question: '', options: ['', '', '', ''], correctAnswer: 0 }])}
-                className="w-full bg-gray-200 text-gray-700 px-6 py-3 rounded-md hover:bg-gray-300 transition-colors font-medium"
-              >
-                + Add Another Quiz
-              </motion.button>
-            )}
-
-            <div className="flex justify-end gap-4">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                type="button"
-                onClick={handleCancelEdit}
-                className="px-6 py-2 rounded-md font-medium text-gray-600 hover:bg-gray-100 transition-colors"
-              >
-                Cancel
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                type="submit"
-                className="bg-secondary text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-colors"
-              >
-                {editMode ? 'Save Changes' : 'Create Quizzes'}
-              </motion.button>
-            </div>
-          </form>
+                <div className="flex justify-end gap-4">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    type="button"
+                    onClick={handleCancelEdit}
+                    className="px-6 py-2 rounded-md font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+                  >
+                    Hủy
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    type="submit"
+                    disabled={generatingQuizzes}
+                    className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors flex items-center"
+                  >
+                    {generatingQuizzes ? (
+                      <>
+                        <span className="mr-2 animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                        Đang tạo...
+                      </>
+                    ) : (
+                      'Tạo quiz từ văn bản'
+                    )}
+                  </motion.button>
+                </div>
+              </form>
+            </>
+          )}
         </motion.div>
       )}
     </motion.div>
   );
-}
+};
 
 export default CreateQuizPage;
