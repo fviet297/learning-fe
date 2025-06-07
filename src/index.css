@@ -18,9 +18,6 @@ main {
   nav {
     width: 200px;
   }
-  main {
-    margin-left: 200px;
-  }
 }
 
 @media (max-width: 640px) {
@@ -33,7 +30,5 @@ main {
   nav li {
     text-align: center;
   }
-  main {
-    margin-left: 60px;
-  }
+
 }

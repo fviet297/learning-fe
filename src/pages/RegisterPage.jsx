@@ -43,12 +43,7 @@ function RegisterPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-0 w-full">
-      {/* Mobile Header - Only shown on small screens */}
-      <div className="md:hidden fixed top-0 left-0 right-0 bg-white shadow-sm py-3 px-4 z-10">
-        <div className="flex items-center justify-center">
-          <h1 className="text-xl font-bold text-blue-600">Hệ Thống Học Tập</h1>
-        </div>
-      </div>
+
 
       <motion.div 
         initial={{ opacity: 0 }}
@@ -113,12 +108,12 @@ function RegisterPage() {
         
         {/* Right side - Register Form */}
         <motion.div 
-          className="w-full lg:w-1/2 p-4 sm:p-6 lg:p-8 flex items-center justify-center overflow-y-auto"
+          className="w-full lg:w-1/2 flex items-center justify-center overflow-y-auto p-3 sm:p-4 md:p-6 lg:p-8"
           initial={{ x: 50 }}
           animate={{ x: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <div className="w-full max-w-md">
+          <div className="w-full max-w-md px-2 sm:px-0">
             <motion.div
               initial={{ y: -20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}

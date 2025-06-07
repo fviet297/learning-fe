@@ -1,13 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FiHome, FiBook, FiUser, FiLogOut, FiLayers, FiBookOpen, FiBriefcase, FiSettings, FiChevronDown } from 'react-icons/fi';
 
-function Sidebar({ onNavigate }) {
+function Sidebar({ onNavigate, isSidebarOpen }) {
   const navigate = useNavigate();
   const location = useLocation();
   const username = "Người dùng"; // Thay thế bằng tên user thực từ context hoặc state
   const [expandedMenu, setExpandedMenu] = useState(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  
+  // Đảm bảo luôn hiển thị đầy đủ khi sidebar được mở hoặc trên desktop
+  const showFullSidebar = !isMobile || isSidebarOpen;
+  
+  // Theo dõi kích thước màn hình để phát hiện mobile
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Kiểm tra kích thước ban đầu
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const toggleSubmenu = (menuId) => {
     setExpandedMenu(expandedMenu === menuId ? null : menuId);
@@ -38,29 +53,15 @@ function Sidebar({ onNavigate }) {
 
   const handleLogout = () => {
     // Thêm logic logout ở đây
+    localStorage.removeItem('token');
+    localStorage.removeItem('userId');
     console.log('Đăng xuất');
     navigate('/login');
   };
 
-  // Animation variants
-  const sidebarVariants = {
-    hidden: { opacity: 0, x: -20 },
-    visible: { 
-      opacity: 1, 
-      x: 0,
-      transition: { 
-        when: "beforeChildren", 
-        staggerChildren: 0.1,
-        duration: 0.3,
-        type: "spring", 
-        stiffness: 300,
-        damping: 24
-      } 
-    }
-  };
-
+  // Animation variants - Đơn giản hóa để đảm bảo hiển thị đúng
   const menuItemVariants = {
-    hidden: { opacity: 0, x: -20 },
+    hidden: { opacity: 0, x: -10 },
     visible: { opacity: 1, x: 0 }
   };
 
@@ -84,44 +85,37 @@ function Sidebar({ onNavigate }) {
   };
 
   return (
-    <motion.div 
-      className="fixed left-0 top-0 h-full w-64 bg-white shadow-xl flex flex-col py-6 border-r border-gray-100 lg:static lg:shadow-none"
-      initial="hidden"
-      animate="visible"
-      variants={sidebarVariants}
-    >
-      <div className="px-4 lg:px-6 py-4 lg:py-0 lg:mb-6">
-        <motion.div 
-          className="text-xl font-bold text-primary flex items-center justify-center lg:justify-start gap-3 w-full"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-        >
+    <div className="h-full w-full flex flex-col py-4 border-r border-gray-100">
+      {/* Logo và tên ứng dụng */}
+      <div className="px-4 py-2 mb-4">
+        <div className="text-xl font-bold text-primary flex items-center gap-3 w-full">
           <div className="flex items-center justify-center w-10 h-10 bg-blue-50 rounded-lg text-blue-600">
             <FiBook className="w-5 h-5" />
           </div>
-          <span className="hidden lg:inline text-gray-800">Learning App</span>
-        </motion.div>
+          {showFullSidebar && (
+            <span className="text-gray-800 text-lg">Learning App</span>
+          )}
+        </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden px-1">
         {menuItems.map((item) => (
           <div key={item.id} className="mb-1">
             <motion.button
               variants={menuItemVariants}
-              whileHover={{ x: 4 }}
+              whileHover={{ x: !showFullSidebar ? 0 : 4 }}
               onClick={() => item.hasSubmenu ? toggleSubmenu(item.id) : handleNavigation(item.path)}
-              className={`flex items-center justify-between px-6 py-3 text-left w-full rounded-r-full hover:bg-blue-50 transition-all ${
+              className={`flex items-center justify-between ${!showFullSidebar ? 'px-2' : 'px-4 sm:px-6'} py-3 text-left w-full rounded-r-full hover:bg-blue-50 transition-all ${
                 (location.pathname === item.path || (item.hasSubmenu && expandedMenu === item.id)) 
                   ? 'bg-blue-100 text-primary font-medium' 
                   : 'text-gray-600'
               }`}
             >
-              <div className="flex items-center gap-3">
-                <div className={`${(location.pathname === item.path || (item.hasSubmenu && expandedMenu === item.id)) ? 'text-primary' : 'text-gray-500'}`}>
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className={`flex items-center justify-center ${!showFullSidebar ? 'w-8 h-8' : ''} ${(location.pathname === item.path || (item.hasSubmenu && expandedMenu === item.id)) ? 'text-primary' : 'text-gray-500'}`}>
                   {item.icon}
                 </div>
-                <span>{item.label}</span>
+                {showFullSidebar && <span className="text-sm sm:text-base">{item.label}</span>}
               </div>
               {item.hasSubmenu && (
                 <motion.div
@@ -164,7 +158,7 @@ function Sidebar({ onNavigate }) {
         ))}
       </div>
 
-      <div className="mt-auto px-4 pt-4 border-t border-gray-100 hidden lg:block">
+      <div className={`mt-auto px-4 pt-4 border-t border-gray-100 ${!showFullSidebar ? 'hidden' : 'block'}`}>
         <motion.button
           variants={menuItemVariants}
           whileHover={{ x: 4 }}
@@ -179,7 +173,7 @@ function Sidebar({ onNavigate }) {
           <span className="font-medium">Đăng xuất</span>
         </motion.button>
       </div>
-    </motion.div>
+    </div>
   );
 }
 

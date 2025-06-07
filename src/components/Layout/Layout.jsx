@@ -5,12 +5,12 @@ import { FiMenu } from 'react-icons/fi';
 
 function Layout({ children }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   // Update isMobile state on window resize
   useEffect(() => {
     const handleResize = () => {
-      const isMobileView = window.innerWidth < 1024;
+      const isMobileView = window.innerWidth < 768;
       setIsMobile(isMobileView);
       
       // Auto-close sidebar when switching to mobile view
@@ -31,13 +31,18 @@ function Layout({ children }) {
   }, [isSidebarOpen]);
 
   const toggleSidebar = () => {
+    // Đơn giản chỉ chuyển trạng thái
     setIsSidebarOpen(!isSidebarOpen);
-    if (!isMobile) return;
     
-    if (!isSidebarOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
+    // Xử lý overflow cho body
+    if (isMobile) {
+      if (!isSidebarOpen) {
+        // Khi mở sidebar: chặn scroll body
+        document.body.style.overflow = 'hidden';
+      } else {
+        // Khi đóng sidebar: cho phép scroll body
+        document.body.style.overflow = 'auto';
+      }
     }
   };
 
@@ -59,13 +64,12 @@ function Layout({ children }) {
         />
       )}
       
-      {/* Sidebar */}
+      {/* Sidebar - Tiếp cận đơn giản hóa để đảm bảo hiển thị đầy đủ */}
       <div 
-        className={`fixed lg:static z-30 transform transition-transform duration-300 ease-in-out ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        }`}
+        className={`fixed lg:static z-30 h-screen bg-white border-r shadow-lg transition-transform duration-300 ${isSidebarOpen || !isMobile ? 'translate-x-0' : '-translate-x-full'}`}
+        style={{ width: '240px' }}
       >
-        <Sidebar onNavigate={handleNavigation} />
+        <Sidebar onNavigate={handleNavigation} isSidebarOpen={isSidebarOpen} />
       </div>
       
       {/* Main content */}
@@ -81,7 +85,7 @@ function Layout({ children }) {
           >
             <FiMenu className="w-6 h-6 text-gray-700" />
           </button>
-          <h1 className="hidden lg:block ml-4 text-xl font-semibold text-gray-800">Learning App</h1>
+          <h1 className="hidden lg:block ml-4 text-xl font-semibold text-gray-800">Learnindg App</h1>
         </div>
         
         <div className="p-4 lg:p-6">
