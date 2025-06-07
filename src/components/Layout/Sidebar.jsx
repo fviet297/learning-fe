@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FiHome, FiBook, FiUser, FiLogOut, FiLayers, FiBookOpen, FiBriefcase, FiSettings, FiChevronDown } from 'react-icons/fi';
 
-function Sidebar() {
+function Sidebar({ onNavigate }) {
   const navigate = useNavigate();
   const location = useLocation();
   const username = "Người dùng"; // Thay thế bằng tên user thực từ context hoặc state
@@ -11,6 +11,12 @@ function Sidebar() {
 
   const toggleSubmenu = (menuId) => {
     setExpandedMenu(expandedMenu === menuId ? null : menuId);
+  };
+
+  // Handle navigation with callback
+  const handleNavigation = (path) => {
+    navigate(path);
+    if (onNavigate) onNavigate();
   };
 
   const menuItems = [
@@ -79,20 +85,22 @@ function Sidebar() {
 
   return (
     <motion.div 
-      className="fixed left-0 top-0 h-full w-64 bg-white shadow-xl flex flex-col py-6 border-r border-gray-100"
+      className="fixed left-0 top-0 h-full w-64 bg-white shadow-xl flex flex-col py-6 border-r border-gray-100 lg:static lg:shadow-none"
       initial="hidden"
       animate="visible"
       variants={sidebarVariants}
     >
-      <div className="px-6 mb-6">
+      <div className="px-4 lg:px-6 py-4 lg:py-0 lg:mb-6">
         <motion.div 
-          className="text-xl font-bold text-primary flex items-center gap-2"
+          className="text-xl font-bold text-primary flex items-center justify-center lg:justify-start gap-3 w-full"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
-          <FiBook className="w-6 h-6" />
-          <span>Learning App</span>
+          <div className="flex items-center justify-center w-10 h-10 bg-blue-50 rounded-lg text-blue-600">
+            <FiBook className="w-5 h-5" />
+          </div>
+          <span className="hidden lg:inline text-gray-800">Learning App</span>
         </motion.div>
       </div>
 
@@ -102,7 +110,7 @@ function Sidebar() {
             <motion.button
               variants={menuItemVariants}
               whileHover={{ x: 4 }}
-              onClick={() => item.hasSubmenu ? toggleSubmenu(item.id) : navigate(item.path)}
+              onClick={() => item.hasSubmenu ? toggleSubmenu(item.id) : handleNavigation(item.path)}
               className={`flex items-center justify-between px-6 py-3 text-left w-full rounded-r-full hover:bg-blue-50 transition-all ${
                 (location.pathname === item.path || (item.hasSubmenu && expandedMenu === item.id)) 
                   ? 'bg-blue-100 text-primary font-medium' 
@@ -141,7 +149,7 @@ function Sidebar() {
                         variants={submenuItemVariants}
                         whileHover={{ x: 2 }}
                         whileTap={{ scale: 0.98 }}
-                        onClick={() => navigate(subItem.path)}
+                        onClick={() => handleNavigation(subItem.path)}
                         className={`flex items-center gap-3 px-5 py-2 text-left w-full rounded-r-full hover:bg-blue-50 ${location.pathname === subItem.path ? 'text-primary font-medium' : 'text-gray-500'}`}
                       >
                         {subItem.icon}
@@ -156,12 +164,15 @@ function Sidebar() {
         ))}
       </div>
 
-      <div className="mt-auto px-4 pt-4 border-t border-gray-100">
+      <div className="mt-auto px-4 pt-4 border-t border-gray-100 hidden lg:block">
         <motion.button
           variants={menuItemVariants}
           whileHover={{ x: 4 }}
           whileTap={{ scale: 0.95 }}
-          onClick={handleLogout}
+          onClick={() => {
+            handleLogout();
+            if (onNavigate) onNavigate();
+          }}
           className="flex items-center gap-3 px-6 py-3 text-left w-full rounded-full text-gray-600 hover:bg-red-50 hover:text-red-500 transition-colors"
         >
           <FiLogOut className="w-5 h-5" />

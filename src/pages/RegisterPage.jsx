@@ -43,15 +43,22 @@ function RegisterPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-0 w-full">
+      {/* Mobile Header - Only shown on small screens */}
+      <div className="md:hidden fixed top-0 left-0 right-0 bg-white shadow-sm py-3 px-4 z-10">
+        <div className="flex items-center justify-center">
+          <h1 className="text-xl font-bold text-blue-600">Hệ Thống Học Tập</h1>
+        </div>
+      </div>
+
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6 }}
-        className="w-full h-full flex flex-col md:flex-row bg-white md:rounded-none shadow-xl overflow-hidden"
+        className="w-full h-full flex flex-col lg:flex-row bg-white md:rounded-none shadow-xl overflow-hidden mt-12 md:mt-0"
       >
-        {/* Left side - App Introduction */}
+        {/* Left side - App Introduction - Hidden on mobile */}
         <motion.div 
-          className="md:w-1/2 bg-gradient-to-br from-blue-600 to-indigo-800 p-8 text-white"
+          className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 to-indigo-800 p-6 lg:p-8 text-white"
           initial={{ x: -50 }}
           animate={{ x: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
@@ -73,7 +80,7 @@ function RegisterPage() {
                 className="object-cover rounded-lg shadow-lg mb-8 max-w-full"
               />
               
-              <div className="space-y-6">
+              <div className="space-y-3 sm:space-y-4">
                 {features.map((feature, index) => (
                   <motion.div 
                     key={index}
@@ -106,7 +113,7 @@ function RegisterPage() {
         
         {/* Right side - Register Form */}
         <motion.div 
-          className="md:w-1/2 p-8 flex items-center justify-center overflow-y-auto"
+          className="w-full lg:w-1/2 p-4 sm:p-6 lg:p-8 flex items-center justify-center overflow-y-auto"
           initial={{ x: 50 }}
           animate={{ x: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
@@ -213,8 +220,8 @@ function RegisterPage() {
                 </div>
               </div>
               
-              <div className="flex items-start mt-2">
-                <div className="flex items-center h-5">
+              <div className="flex items-start mt-4">
+                <div className="flex items-center h-5 mt-0.5">
                   <input
                     id="terms"
                     name="terms"
@@ -223,26 +230,33 @@ function RegisterPage() {
                     required
                   />
                 </div>
-                <div className="ml-3 text-sm">
-                  <label htmlFor="terms" className="font-medium text-gray-700">
-                    Tôi đồng ý với <a href="#" className="text-blue-600 hover:text-blue-500">Điều khoản dịch vụ</a> và <a href="#" className="text-blue-600 hover:text-blue-500">Chính sách bảo mật</a>
+                <div className="ml-3 text-xs sm:text-sm">
+                  <label htmlFor="terms" className="text-gray-700">
+                    Tôi đồng ý với <a href="#" className="text-blue-600 hover:underline">Điều khoản dịch vụ</a> và <a href="#" className="text-blue-600 hover:underline">Chính sách bảo mật</a>
                   </label>
                 </div>
               </div>
               
-              <motion.button
-                whileHover={{ scale: 1.02, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" }}
-                whileTap={{ scale: 0.98 }}
+              <div className="mt-4 sm:mt-6 border-t border-gray-200 pt-4">
+                <p className="text-xs text-gray-500 text-center px-2">
+                  Bằng cách đăng ký, bạn đồng ý với Điều khoản dịch vụ và Chính sách bảo mật của chúng tôi.
+                </p>
+              </div>
+              
+              <button
                 type="submit"
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 mt-4"
+                className="w-full bg-blue-600 text-white py-2 sm:py-2.5 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 active:scale-95"
               >
                 Đăng Ký
-              </motion.button>
+              </button>
             </form>
             
             <div className="mt-6">
-              <p className="text-center text-gray-600 text-sm">
-                Đã có tài khoản? <Link to="/login" className="text-blue-600 hover:text-blue-500 hover:underline font-medium">Đăng nhập ngay</Link>
+              <p className="text-center text-xs sm:text-sm text-gray-600">
+                Đã có tài khoản?{' '}
+                <Link to="/login" className="text-blue-600 hover:underline font-medium whitespace-nowrap">
+                  Đăng nhập ngay
+                </Link>
               </p>
             </div>
           </div>
