@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import { showError, showSuccess } from '../services/toastService';
 import { getAllStudyModule, deleteModule } from '../services/api';
 import { FiTrash2, FiEdit } from 'react-icons/fi';
 import ConfirmModal from '../components/common/ConfirmModal';
@@ -32,7 +32,7 @@ function StudyModuleListPage() {
       }
       setTotalPages(total_page);
     } catch (error) {
-      toast.error('Error fetching study modules!');
+      showError('Error fetching study modules!');
       console.error('Error fetching study modules:', error);
     } finally {
       setLoading(false);
@@ -71,11 +71,11 @@ function StudyModuleListPage() {
     
     try {
       await deleteModule(moduleToDelete);
-      toast.success('Module đã được xóa thành công!');
+      showSuccess('Module đã được xóa thành công!');
       // Cập nhật lại danh sách module sau khi xóa
       fetchModules(currentPage);
     } catch (error) {
-      toast.error('Không thể xóa module. Vui lòng thử lại sau!');
+      showError('Không thể xóa module. Vui lòng thử lại sau!');
       console.error('Error deleting module:', error);
     }
     
