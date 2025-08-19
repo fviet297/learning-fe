@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
@@ -22,6 +22,7 @@ function CreateQuizPage() {
   const [generatingQuizzes, setGeneratingQuizzes] = useState(false);
   const { moduleId } = useParams();
   const navigate = useNavigate();
+  const textFormRef = useRef(null);
   
   // Fetch existing quizzes when component mounts
   useEffect(() => {
@@ -108,6 +109,13 @@ function CreateQuizPage() {
     setShowForm(true);
     setActiveTab('fromText');
     setTextContent('');
+    
+    // Đợi một chút để form hiển thị trước khi cuộn đến
+    setTimeout(() => {
+      if (textFormRef.current) {
+        textFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
   };
   
   const handleCancelEdit = () => {
@@ -158,7 +166,7 @@ function CreateQuizPage() {
   const handleGenerateQuizzes = async (e) => {
     e.preventDefault();
     if (!textContent.trim()) {
-      toast.error('Vui lòng nhập nội dung văn bản để tạo quiz!');
+      toast.error('Please enter text content for AI to generate quizzes!');
       return;
     }
     
@@ -214,7 +222,7 @@ function CreateQuizPage() {
       {/* Existing quizzes */}
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold text-primary">Quizzes</h3>
+          <h3 className="text-xl font-semibold text-primary">Quiz List</h3>
           <div className="flex space-x-2">
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -223,7 +231,7 @@ function CreateQuizPage() {
               onClick={handleAddQuiz}
               className="bg-secondary text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-colors"
             >
-              + Thêm quiz mới
+              + Add New Quiz
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -232,7 +240,7 @@ function CreateQuizPage() {
               onClick={handleAddQuizFromText}
               className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors"
             >
-              Tạo từ văn bản
+              AI Generator
             </motion.button>
           </div>
         </div>
@@ -315,20 +323,29 @@ function CreateQuizPage() {
               className={`py-2 px-4 font-medium ${activeTab === 'manual' ? 'text-secondary border-b-2 border-secondary' : 'text-gray-500'}`}
               onClick={() => setActiveTab('manual')}
             >
-              Tạo thủ công
+              Manual Creation
             </button>
             <button
               className={`py-2 px-4 font-medium ${activeTab === 'fromText' ? 'text-secondary border-b-2 border-secondary' : 'text-gray-500'}`}
-              onClick={() => setActiveTab('fromText')}
+              onClick={() => {
+                setActiveTab('fromText');
+                
+                // Đợi một chút để form hiển thị trước khi cuộn đến
+                setTimeout(() => {
+                  if (textFormRef.current) {
+                    textFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }, 100);
+              }}
             >
-              Tạo từ nội dung văn bản
+              AI Generator
             </button>
           </div>
           
           {activeTab === 'manual' ? (
             <>
               <h3 className="text-xl font-semibold mb-4 text-primary">
-                {editMode ? 'Sửa Quiz' : 'Thêm Quiz Mới'}
+                {editMode ? 'Edit Quiz' : 'Add New Quiz'}
               </h3>
               
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -342,7 +359,7 @@ function CreateQuizPage() {
                   >
                     <div className="mb-4">
                       <label htmlFor={`question-${quizIndex}`} className="block text-gray-700 font-medium mb-2">
-                        Câu hỏi
+                        Question
                       </label>
                       <textarea
                         id={`question-${quizIndex}`}
@@ -350,7 +367,7 @@ function CreateQuizPage() {
                         onChange={(e) => handleQuestionChange(quizIndex, e.target.value)}
                         className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary bg-white"
                         rows="3"
-                        placeholder="Nhập câu hỏi của bạn..."
+                        placeholder="Enter your question..."
                       />
                     </div>
 
@@ -371,7 +388,7 @@ function CreateQuizPage() {
                             value={option}
                             onChange={(e) => handleOptionChange(quizIndex, optionIndex, e.target.value)}
                             className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary bg-white"
-                            placeholder={`Lựa chọn ${optionIndex + 1}`}
+                            placeholder={`Option ${optionIndex + 1}`}
                           />
                         </div>
                       ))}
@@ -387,7 +404,7 @@ function CreateQuizPage() {
                     onClick={() => setNewQuizzes([...newQuizzes, { question: '', options: ['', '', '', ''], correctAnswer: 0 }])}
                     className="w-full bg-gray-200 text-gray-700 px-6 py-3 rounded-md hover:bg-gray-300 transition-colors font-medium"
                   >
-                    + Thêm quiz khác
+                    + Add Another Quiz
                   </motion.button>
                 )}
 
@@ -399,7 +416,7 @@ function CreateQuizPage() {
                     onClick={handleCancelEdit}
                     className="px-6 py-2 rounded-md font-medium text-gray-600 hover:bg-gray-100 transition-colors"
                   >
-                    Hủy
+                    Cancel
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -407,7 +424,7 @@ function CreateQuizPage() {
                     type="submit"
                     className="bg-secondary text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-colors"
                   >
-                    {editMode ? 'Lưu thay đổi' : 'Tạo quiz'}
+                    {editMode ? 'Save Changes' : 'Create Quiz'}
                   </motion.button>
                 </div>
               </form>
@@ -415,21 +432,21 @@ function CreateQuizPage() {
           ) : (
             <>
               <h3 className="text-xl font-semibold mb-4 text-primary">
-                Tạo quiz từ nội dung văn bản
+                Generate Quizzes with AI
               </h3>
               
-              <form onSubmit={handleGenerateQuizzes} className="space-y-6">
+              <form ref={textFormRef} onSubmit={handleGenerateQuizzes} className="space-y-6">
                 <div className="space-y-4">
                   <div>
                     <label htmlFor="text-content" className="block text-gray-700 font-medium mb-2">
-                      Nội dung văn bản
+                      Text Content
                     </label>
                     <textarea
                       id="text-content"
                       value={textContent}
                       onChange={(e) => setTextContent(e.target.value)}
                       className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary bg-white"
-                      placeholder="Nhập nội dung văn bản để tạo quiz..."
+                      placeholder="Enter text content for AI to generate quizzes..."
                       rows="10"
                       required
                     />
@@ -444,7 +461,7 @@ function CreateQuizPage() {
                     onClick={handleCancelEdit}
                     className="px-6 py-2 rounded-md font-medium text-gray-600 hover:bg-gray-100 transition-colors"
                   >
-                    Hủy
+                    Cancel
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -456,10 +473,10 @@ function CreateQuizPage() {
                     {generatingQuizzes ? (
                       <>
                         <span className="mr-2 animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
-                        Đang tạo...
+                        Generating...
                       </>
                     ) : (
-                      'Tạo quiz từ văn bản'
+                      'Generate with AI'
                     )}
                   </motion.button>
                 </div>

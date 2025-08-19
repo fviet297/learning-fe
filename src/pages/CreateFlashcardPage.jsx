@@ -128,7 +128,7 @@ function CreateFlashcardPage() {
   const handleGenerateFlashcards = async (e) => {
     e.preventDefault();
     if (!textContent.trim()) {
-      toast.error('Vui lòng nhập nội dung văn bản để tạo flashcard!');
+      toast.error('Please enter text content for AI to generate flashcards!');
       return;
     }
     
@@ -183,7 +183,7 @@ function CreateFlashcardPage() {
       {/* Existing flashcards */}
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold text-primary">Flashcards</h3>
+          <h3 className="text-xl font-semibold text-primary">Flashcard List</h3>
           <div className="flex space-x-2">
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -192,7 +192,7 @@ function CreateFlashcardPage() {
               onClick={handleAddFlashcard}
               className="bg-secondary text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-colors"
             >
-              + Thêm flashcard mới
+              + Add New Flashcard
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -211,7 +211,7 @@ function CreateFlashcardPage() {
               }}
               className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors"
             >
-              Tạo từ văn bản
+              AI Generator
             </motion.button>
           </div>
         </div>
@@ -335,20 +335,20 @@ function CreateFlashcardPage() {
               className={`py-2 px-4 font-medium ${activeTab === 'manual' ? 'text-secondary border-b-2 border-secondary' : 'text-gray-500'}`}
               onClick={() => setActiveTab('manual')}
             >
-              Tạo thủ công
+              Manual Creation
             </button>
             <button
               className={`py-2 px-4 font-medium ${activeTab === 'fromText' ? 'text-secondary border-b-2 border-secondary' : 'text-gray-500'}`}
               onClick={() => setActiveTab('fromText')}
             >
-              Tạo từ nội dung văn bản
+              AI Generator
             </button>
           </div>
           
           {activeTab === 'manual' ? (
             <>
               <h3 className="text-xl font-semibold text-primary mb-6">
-                Thêm flashcard mới
+                Add New Flashcards
               </h3>
               
               <form onSubmit={handleCreateFlashcards} className="space-y-6">
@@ -413,7 +413,7 @@ function CreateFlashcardPage() {
                     onClick={() => setShowForm(false)}
                     className="px-6 py-2 rounded-md font-medium text-gray-600 hover:bg-gray-100 transition-colors"
                   >
-                    Hủy
+                    Cancel
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -421,7 +421,7 @@ function CreateFlashcardPage() {
                     type="submit"
                     className="bg-secondary text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-colors"
                   >
-                    Tạo flashcards
+                    Create Flashcards
                   </motion.button>
                 </div>
               </form>
@@ -429,21 +429,21 @@ function CreateFlashcardPage() {
           ) : (
             <>
               <h3 className="text-xl font-semibold text-primary mb-6">
-                Tạo flashcard từ nội dung văn bản
+                Generate Flashcards with AI
               </h3>
               
               <form onSubmit={handleGenerateFlashcards} className="space-y-6">
                 <div className="space-y-4">
                   <div>
                     <label htmlFor="text-content" className="block text-gray-700 font-medium mb-2">
-                      Nội dung văn bản
+                      Text Content
                     </label>
                     <textarea
                       id="text-content"
                       value={textContent}
                       onChange={(e) => setTextContent(e.target.value)}
                       className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary bg-white"
-                      placeholder="Nhập nội dung văn bản để tạo flashcard..."
+                      placeholder="Enter text content for AI to generate flashcards..."
                       rows="10"
                       required
                     />
@@ -458,7 +458,7 @@ function CreateFlashcardPage() {
                     onClick={() => setShowForm(false)}
                     className="px-6 py-2 rounded-md font-medium text-gray-600 hover:bg-gray-100 transition-colors"
                   >
-                    Hủy
+                    Cancel
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -470,10 +470,10 @@ function CreateFlashcardPage() {
                     {generatingFlashcards ? (
                       <>
                         <span className="mr-2 animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
-                        Đang tạo...
+                        Generating...
                       </>
                     ) : (
-                      'Tạo flashcard từ văn bản'
+                      'Generate with AI'
                     )}
                   </motion.button>
                 </div>
