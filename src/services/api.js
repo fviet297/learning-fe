@@ -23,24 +23,21 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Xóa thông tin đăng nhập trong localStorage
+      // Xóa thông tin đăng nhập trong localStorage - đồng bộ với AuthContext
       localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      
-      // Chuyển hướng về trang đăng nhập
-      window.location.href = '/login';
-      
-      // Hiển thị thông báo nếu cần
-      toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', {
-        position: 'top-right',
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: 'light',
-      });
+      localStorage.removeItem('userId');
+
+      // Chuyển hướng về trang đăng nhập nếu không phải đang ở trang login
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+
+        // Hiển thị thông báo một lần duy nhất nhờ toastId
+        toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', {
+          toastId: 'session-expired',
+          position: 'top-right',
+          autoClose: 3000,
+        });
+      }
     }
     return Promise.reject(error);
   }
@@ -51,22 +48,22 @@ const encryptPassword = (password) => {
     return btoa(password + import.meta.env.VITE_SALT_KEY);
   } catch (e) {
     console.error('Error encrypting password:', e);
-    return password; 
+    return password;
   }
 };
 
 export const login = async (credentials) => {
-    const securePayload = { 
-      username: credentials.username,
-      password: encryptPassword(credentials.password)
-    };
-    
-    const response = await api.post('/auth/login', securePayload);
-    return response.data;
+  const securePayload = {
+    username: credentials.username,
+    password: encryptPassword(credentials.password)
+  };
+
+  const response = await api.post('/auth/login', securePayload);
+  return response.data;
 };
 
 export const register = async (userData) => {
-  const securePayload = { 
+  const securePayload = {
     username: userData.username,
     password: encryptPassword(userData.password),
     email: userData.email,
@@ -181,7 +178,7 @@ export const getStudyModuleById = async (moduleId) => {
 export const getAllStudyModule = async (page = 0, size = 10) => {
   const response = await api.get(`/study-modules?page=${page}&size=${size}`);
   return response.data;
-}; 
+};
 
 export const deleteModule = async (moduleId) => {
   const response = await api.delete(`/study-modules/${moduleId}`);
@@ -190,5 +187,10 @@ export const deleteModule = async (moduleId) => {
 
 export const updateModule = async (moduleId, moduleData) => {
   const response = await api.put(`/study-modules/${moduleId}`, moduleData);
+  return response.data;
+};
+
+export const generateCombinedContent = async (payload) => {
+  const response = await api.post('/study-modules/combine', payload);
   return response.data;
 };

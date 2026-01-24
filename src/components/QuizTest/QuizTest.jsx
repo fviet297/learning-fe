@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
+import { FiArrowLeft, FiCheck, FiX, FiAward, FiClock } from 'react-icons/fi';
 import { getQuizzes, submitQuiz, submitQuizResult } from '../../services/api';
+import PremiumCard from '../common/PremiumCard';
+import PremiumButton from '../common/PremiumButton';
 
 function QuizTest() {
   const { moduleId } = useParams();
@@ -48,7 +51,7 @@ function QuizTest() {
           questions: shuffledQuestions.map(item => ({
             id: item.id,
             text: item.question,
-            answers: JSON.parse(item.options).map((option, index) => ({
+            answers: (Array.isArray(item.options) ? item.options : JSON.parse(item.options)).map((option, index) => ({
               id: index,
               text: option
             })),
@@ -59,6 +62,7 @@ function QuizTest() {
     } catch (error) {
       console.error('Error restarting quiz:', error);
       toast.error('Failed to restart quiz');
+      navigate(`/study-modules/${moduleId}`);
     } finally {
       setLoading(false);
     }
@@ -75,7 +79,6 @@ function QuizTest() {
       try {
         setLoading(true);
         const response = await getQuizzes(moduleId);
-        console.log('Quiz response:', response);
         if (response && response.data && Array.isArray(response.data)) {
           // Shuffle questions before setting the quiz state
           const shuffledQuestions = shuffleArray(response.data);
@@ -83,7 +86,7 @@ function QuizTest() {
             questions: shuffledQuestions.map(item => ({
               id: item.id,
               text: item.question,
-              answers: JSON.parse(item.options).map((option, index) => ({
+              answers: (Array.isArray(item.options) ? item.options : JSON.parse(item.options)).map((option, index) => ({
                 id: index,
                 text: option
               })),
@@ -140,7 +143,7 @@ function QuizTest() {
       setCurrentScore(newScore);
     }
 
-    // Xử lý sau 2 giây
+    // Xử lý sau 1.5 giây (nhanh hơn xíu)
     setTimeout(async () => {
       if (currentQuestionIndex < quiz.questions.length - 1) {
         // Nếu không phải câu cuối, chuyển sang câu tiếp theo
@@ -157,104 +160,20 @@ function QuizTest() {
           };
           await submitQuizResult(quizResult);
           setIsSubmitted(true);
-          toast.success(`Quiz completed! Final score: ${newScore} points`);
+          toast.success(`Hoàn thành! Kết quả: ${newScore} điểm`);
         } catch (error) {
           console.error('Error submitting quiz result:', error);
-          toast.error('Failed to save quiz result');
           // Vẫn hiển thị kết quả cho user dù có lỗi
           setIsSubmitted(true);
         }
       }
-    }, 2000);
-  };
-  const handleSubmit = async () => {
-    if (!moduleId) {
-      toast.error('Module ID is missing');
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-
-      // Lấy user ID từ localStorage hoặc context
-      const userId = localStorage.getItem('userId');
-      if (!userId) {
-        toast.error('Please login to submit quiz');
-        return;
-      }
-
-      // Kiểm tra xem đã trả lời hết các câu hỏi chưa
-      if (Object.keys(selectedAnswers).length !== quiz.questions.length) {
-        toast.error('Please answer all questions before submitting');
-        return;
-      }
-
-      // Tính toán kết quả ngay lập tức từ dữ liệu có sẵn
-      const quizResults = [];
-      let totalCorrect = 0;
-
-      for (const question of quiz.questions) {
-        const selectedAnswer = selectedAnswers[question.id];
-        const isCorrect = selectedAnswer === question.correctAnswer;
-
-        quizResults.push({
-          questionId: question.id,
-          question: question.text,
-          selectedAnswer: selectedAnswer,
-          correctAnswer: question.correctAnswer,
-          isCorrect: isCorrect
-        });
-
-        if (isCorrect) {
-          totalCorrect++;
-        }
-      }
-
-      const finalScore = (totalCorrect / quiz.questions.length) * 100;
-
-      // Cập nhật UI ngay lập tức
-      setScore(finalScore);
-      setResults(quizResults);
-      setIsSubmitted(true);
-
-      toast.success(`Quiz completed! Your score: ${finalScore.toFixed(1)}%`);
-
-      // Gửi kết quả lên API
-      try {
-        const apiSubmissions = quizResults.map(result => ({
-          quizId: result.questionId,
-          userId: userId,
-          selectedOption: result.selectedAnswer
-        }));
-
-        // Gửi tất cả các submission cùng lúc
-        await Promise.all(
-          apiSubmissions.map(submission =>
-            submitQuiz(moduleId, submission).catch(error => {
-              console.error(`Error submitting answer for question ${submission.quizId}:`, error);
-              // Không throw error để tiếp tục xử lý các submission khác
-              return null;
-            })
-          )
-        );
-
-        console.log('All quiz results submitted to API successfully');
-      } catch (error) {
-        console.error('Error submitting some quiz results:', error);
-        // Không hiển thị lỗi cho user vì UI đã hiển thị kết quả thành công
-      }
-    } catch (error) {
-      console.error('Error submitting quiz:', error);
-      toast.error('Failed to submit quiz');
-    } finally {
-      setSubmitting(false);
-    }
+    }, 1500);
   };
 
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <div className="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -262,107 +181,129 @@ function QuizTest() {
   if (!quiz || !quiz.questions || quiz.questions.length === 0) {
     return (
       <div className="text-center p-6">
-        <h2 className="text-xl text-red-600">{!quiz ? 'No quiz available' : 'No questions available for this quiz'}</h2>
-        <button
-          className="mt-4 bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+        <h2 className="text-xl text-rose-400">{!quiz ? 'Không có bài kiểm tra' : 'Bài kiểm tra không có câu hỏi'}</h2>
+        <PremiumButton
+          variant="primary"
+          className="mt-6 mx-auto"
           onClick={() => navigate(`/study-modules/${moduleId}`)}
         >
-          Back to Module
-        </button>
+          Quay lại Module
+        </PremiumButton>
       </div>
     );
   }
 
   const currentQuestion = quiz.questions[currentQuestionIndex];
-  const isLastQuestion = currentQuestionIndex === quiz.questions.length - 1;
+  const progress = ((currentQuestionIndex) / quiz.questions.length) * 100;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="max-w-4xl mx-auto p-6"
-    >
+    <div className="max-w-4xl mx-auto p-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
 
-      <div className="flex items-center mb-4">
+      <div className="flex items-center mb-6">
         <motion.button
-          whileHover={{ scale: 1.1 }}
+          whileHover={{ scale: 1.1, x: -2 }}
           whileTap={{ scale: 0.9 }}
           type="button"
           onClick={() => navigate(`/study-modules/${moduleId}`)}
-          className="flex items-center justify-center w-10 h-10 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 hover:text-gray-800 transition-all shadow-sm"
+          className="flex items-center justify-center w-10 h-10 bg-slate-800 rounded-full text-slate-400 hover:text-white hover:bg-slate-700 transition-all shadow-sm border border-slate-700"
           title="Back to Module"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
+          <FiArrowLeft size={20} />
         </motion.button>
+        <span className="ml-4 text-slate-400 font-medium">Quay lại</span>
       </div>
+
       {!isSubmitted ? (
         // Hiển thị câu hỏi và đáp án
         <>
-          <div className="mb-8 flex justify-between items-center">
-            <div>
-              <h2 className="text-2xl font-semibold text-primary mb-2">{quiz.title}</h2>
-              <p className="text-gray-600">Question {currentQuestionIndex + 1} of {quiz.questions.length}</p>
+          <div className="mb-8">
+            <div className="flex justify-between items-end mb-4">
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-1">Kiểm tra kiến thức</h2>
+                <p className="text-slate-400 text-sm">Câu hỏi {currentQuestionIndex + 1} / {quiz.questions.length}</p>
+              </div>
+              <div className="text-right">
+                <div className="text-xs uppercase font-bold text-slate-500 mb-1">Điểm hiện tại</div>
+                <div className="text-2xl font-black text-indigo-400">{currentScore}</div>
+              </div>
             </div>
-            <div className="text-right">
-              <p className="text-xl font-bold text-primary">Current Score: {currentScore}</p>
-              {showingResult && (
-                <div className={`mt-2 text-lg font-semibold ${lastAnswerCorrect ? 'text-green-600' : 'text-red-600'}`}>
-                  {lastAnswerCorrect ? '+10 points!' : 'No points awarded'}
-                </div>
-              )}
+
+            {/* Progress Bar */}
+            <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full bg-gradient-to-r from-indigo-500 to-purple-500"
+                initial={{ width: 0 }}
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 0.3 }}
+              />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <h3 className="text-xl font-semibold mb-4">{currentQuestion.text}</h3>
-            <div className="space-y-4">
-              {currentQuestion.answers.map((answer) => {
-                const isSelected = selectedAnswers[currentQuestion.id] === answer.id;
-                const showResult = showingResult;
-                const isCorrect = answer.id === currentQuestion.correctAnswer;
+          <PremiumCard className="relative overflow-hidden">
+            {/* Question Visual */}
+            <div className="absolute top-0 right-0 p-32 bg-indigo-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
-                let buttonClass = 'w-full text-left p-4 rounded-lg border-2 transition-colors';
-                if (showResult) {
-                  if (isCorrect) {
-                    buttonClass += ' border-green-500 bg-green-50';
-                  } else if (isSelected && !isCorrect) {
-                    buttonClass += ' border-red-500 bg-red-50';
+            <div className="relative z-10">
+              <h3 className="text-xl md:text-2xl font-semibold text-white mb-8 leading-relaxed">
+                {currentQuestion.text}
+              </h3>
+
+              <div className="space-y-3">
+                {currentQuestion.answers.map((answer) => {
+                  const isSelected = selectedAnswers[currentQuestion.id] === answer.id;
+                  const showResult = showingResult;
+                  const isCorrect = answer.id === currentQuestion.correctAnswer;
+
+                  let buttonClass = 'relative w-full text-left p-5 rounded-2xl border transition-all duration-200 group ';
+
+                  if (showResult) {
+                    if (isCorrect) {
+                      buttonClass += 'border-emerald-500 bg-emerald-500/10 text-emerald-300';
+                    } else if (isSelected && !isCorrect) {
+                      buttonClass += 'border-rose-500 bg-rose-500/10 text-rose-300';
+                    } else {
+                      buttonClass += 'border-slate-700 bg-slate-800/50 text-slate-500 opacity-50';
+                    }
+                  } else if (isSelected) {
+                    buttonClass += 'border-indigo-500 bg-indigo-500/10 text-indigo-300 scale-[0.99]';
                   } else {
-                    buttonClass += ' border-gray-200';
+                    buttonClass += 'border-slate-700 bg-slate-800/50 text-slate-300 hover:border-indigo-500/50 hover:bg-slate-800';
                   }
-                } else if (isSelected) {
-                  buttonClass += ' border-primary bg-primary/10';
-                } else {
-                  buttonClass += ' border-gray-200 hover:border-primary/50';
-                }
 
-                return (
-                  <motion.button
-                    key={answer.id}
-                    whileHover={{ scale: (showingResult || selectedAnswers[currentQuestion.id] !== undefined) ? 1 : 1.02 }}
-                    whileTap={{ scale: (showingResult || selectedAnswers[currentQuestion.id] !== undefined) ? 1 : 0.98 }}
-                    className={buttonClass}
-                    onClick={() => !showingResult && handleAnswerSelect(currentQuestion.id, answer.id)}
-                    disabled={showingResult || selectedAnswers[currentQuestion.id] !== undefined}
-                    onDoubleClick={() => !showingResult && !selectedAnswers[currentQuestion.id] && handleAnswerSelect(currentQuestion.id, answer.id)}
-                  >
-                    <div className="flex justify-between items-center">
-                      <span>{answer.text}</span>
-                      {showResult && (
-                        <span className={`ml-2 ${isCorrect ? 'text-green-600' : (isSelected ? 'text-red-600' : '')}`}>
-                          {isCorrect && '✓'}
-                          {isSelected && !isCorrect && '✗'}
-                        </span>
-                      )}
-                    </div>
-                  </motion.button>
-                );
-              })}
+                  return (
+                    <motion.button
+                      key={answer.id}
+                      whileHover={!showingResult ? { scale: 1.01 } : {}}
+                      whileTap={!showingResult ? { scale: 0.99 } : {}}
+                      className={buttonClass}
+                      onClick={() => !showingResult && handleAnswerSelect(currentQuestion.id, answer.id)}
+                      disabled={showingResult || selectedAnswers[currentQuestion.id] !== undefined}
+                    >
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium text-lg">{answer.text}</span>
+                        {showResult && (
+                          <span className="ml-3 shrink-0">
+                            {isCorrect && <FiCheck className="text-emerald-400 text-xl" />}
+                            {isSelected && !isCorrect && <FiX className="text-rose-400 text-xl" />}
+                          </span>
+                        )}
+                      </div>
+                    </motion.button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          </PremiumCard>
+
+          {showingResult && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`mt-4 mx-auto max-w-sm text-center font-bold p-2 px-4 rounded-xl ${lastAnswerCorrect ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'}`}
+            >
+              {lastAnswerCorrect ? 'Chính xác! +10 điểm' : 'Tiếc quá, sai rồi!'}
+            </motion.div>
+          )}
         </>
       ) : (
         // Hiển thị kết quả cuối cùng
@@ -370,35 +311,56 @@ function QuizTest() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className="bg-white rounded-lg shadow-lg p-8 text-center"
         >
-          <h2 className="text-3xl font-bold text-primary mb-6">Quiz Completed!</h2>
-          <div className="mb-8">
-            <p className="text-4xl font-bold text-primary mb-4">{currentScore} points</p>
-            <p className="text-xl text-gray-600">Correct answers: {results.filter(r => r.isCorrect).length} / {quiz.questions.length}</p>
-          </div>
-          <div className="flex justify-center space-x-4">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-primary text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors"
-              onClick={() => navigate(`/study-modules/${moduleId}`)}
-            >
-              Back to Module
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-green-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition-colors"
-              onClick={restartQuiz}
-            >
-              Re-test
-            </motion.button>
-          </div>
+          <PremiumCard className="text-center p-12 overflow-hidden relative border-indigo-500/30">
+            <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/10 to-transparent pointer-events-none"></div>
+
+            <div className="relative z-10">
+              <div className="w-24 h-24 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-indigo-500/20">
+                <FiAward className="text-white text-5xl" />
+              </div>
+
+              <h2 className="text-3xl font-black text-white mb-2">Hoàn thành bài kiểm tra!</h2>
+              <div className="text-slate-400 mb-8">Bạn đã làm rất tốt</div>
+
+              <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 mb-4 tracking-tighter">
+                {currentScore}
+              </div>
+              <div className="text-sm font-bold uppercase tracking-widest text-indigo-400 mb-8">Tổng Điểm</div>
+
+              <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto mb-10">
+                <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5">
+                  <div className="text-2xl font-bold text-emerald-400">{results.filter(r => r.isCorrect).length}</div>
+                  <div className="text-xs text-slate-500 font-bold uppercase mt-1">Đúng</div>
+                </div>
+                <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5">
+                  <div className="text-2xl font-bold text-white">{quiz.questions.length}</div>
+                  <div className="text-xs text-slate-500 font-bold uppercase mt-1">Tổng câu</div>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row justify-center gap-4">
+                <PremiumButton
+                  variant="secondary"
+                  className="justify-center"
+                  onClick={() => navigate(`/study-modules/${moduleId}`)}
+                >
+                  Quay lại Module
+                </PremiumButton>
+                <PremiumButton
+                  variant="primary"
+                  className="justify-center"
+                  onClick={restartQuiz}
+                >
+                  Làm lại bài
+                </PremiumButton>
+              </div>
+            </div>
+          </PremiumCard>
         </motion.div>
       )}
-    </motion.div>
+    </div>
   );
 }
 
-export default QuizTest; 
+export default QuizTest;

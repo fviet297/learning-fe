@@ -1,55 +1,67 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { FiAlertTriangle, FiX } from 'react-icons/fi';
+import PremiumButton from './PremiumButton';
 
-function ConfirmModal({ isOpen, onClose, onConfirm, title, message }) {
-  if (!isOpen) return null;
+const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message }) => {
+    if (!isOpen) return null;
 
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50"
-            onClick={onClose}
-          />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-            className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md z-10"
-          >
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">{title}</h2>
-            <p className="text-gray-600 mb-6">{message}</p>
-            <div className="flex justify-end space-x-3">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
-                onClick={onClose}
-              >
-                Hủy
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
-                onClick={() => {
-                  onConfirm();
-                  onClose();
-                }}
-              >
-                Xác nhận
-              </motion.button>
+    return (
+        <AnimatePresence>
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={onClose}
+                    className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                />
+
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                    className="relative w-full max-w-md bg-slate-800 border border-white/10 rounded-3xl shadow-2xl overflow-hidden"
+                >
+                    <div className="p-6">
+                        <div className="flex items-start gap-4">
+                            <div className="p-3 bg-rose-500/10 rounded-2xl text-rose-500 shrink-0">
+                                <FiAlertTriangle size={24} />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="text-xl font-bold text-white mb-2">{title}</h3>
+                                <p className="text-slate-400 leading-relaxed text-sm">
+                                    {message}
+                                </p>
+                            </div>
+                            <button
+                                onClick={onClose}
+                                className="text-slate-500 hover:text-white transition-colors"
+                            >
+                                <FiX size={20} />
+                            </button>
+                        </div>
+
+                        <div className="mt-8 flex justify-end gap-3">
+                            <PremiumButton
+                                variant="ghost"
+                                onClick={onClose}
+                                className="text-sm"
+                            >
+                                Hủy bỏ
+                            </PremiumButton>
+                            <PremiumButton
+                                onClick={onConfirm}
+                                className="!bg-rose-600 hover:!bg-rose-700 text-sm !px-6"
+                            >
+                                Xác nhận xóa
+                            </PremiumButton>
+                        </div>
+                    </div>
+                </motion.div>
             </div>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
-  );
-}
+        </AnimatePresence>
+    );
+};
 
 export default ConfirmModal;

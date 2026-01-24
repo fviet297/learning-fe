@@ -2,260 +2,182 @@ import React, { useState, useContext } from 'react';
 import { motion } from 'framer-motion';
 import { AuthContext } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
-import { FaUser, FaEnvelope, FaLock, FaUserTie, FaLaptop, FaLightbulb, FaRegClipboard } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaLock, FaAddressCard, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { HiArrowRight } from 'react-icons/hi';
+import { toast } from 'react-toastify';
+import PremiumInput from '../components/common/PremiumInput';
+import PremiumButton from '../components/common/PremiumButton';
 
 function RegisterPage() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [email, setEmail] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [isHovering, setIsHovering] = useState(null);
+  const [formData, setFormData] = useState({
+    username: '',
+    password: '',
+    confirmPassword: '',
+    email: '',
+    fullName: ''
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const { handleRegister } = useContext(AuthContext);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (password !== confirmPassword) {
-      alert('Mật khẩu xác nhận không khớp!');
-      return;
-    }
-    handleRegister(username, password, email, fullName);
+  const handleChange = (e) => {
+    // PremiumInput returns a full event object, so this works fine
+    setFormData({ ...formData, [e.target.name || e.target.id]: e.target.value });
   };
 
-  const features = [
-    {
-      icon: <FaLaptop className="text-teal-500" />,
-      title: "Học tập linh hoạt",
-      description: "Truy cập tài liệu học tập từ mọi thiết bị"
-    },
-    {
-      icon: <FaLightbulb className="text-yellow-500" />,
-      title: "Flashcards thông minh",
-      description: "Cải thiện khả năng ghi nhớ với hệ thống flashcards"
-    },
-    {
-      icon: <FaRegClipboard className="text-blue-500" />,
-      title: "Kiểm tra kiến thức",
-      description: "Kiểm tra và đánh giá tiến độ học tập với quiz"
+  // Wrapper for PremiumInput to handle name prop (PremiumInput needs updating or we pass props)
+  // PremiumInput accepts value and onChange, but we need to ensure it propagates the name for the generic handler
+  const handleInputChange = (field) => (e) => {
+    setFormData({ ...formData, [field]: e.target.value });
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (formData.password !== formData.confirmPassword) {
+      toast.error('Mật khẩu xác nhận không khớp!');
+      return;
     }
-  ];
+
+    setIsLoading(true);
+    try {
+      await handleRegister(formData.username, formData.password, formData.email, formData.fullName);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-0 w-full">
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background Decor */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 bg-slate-900">
+        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-500/20 rounded-full blur-[120px]"></div>
+        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-500/20 rounded-full blur-[120px]"></div>
+      </div>
 
-
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="w-full h-full flex flex-col lg:flex-row bg-white md:rounded-none shadow-xl overflow-hidden mt-12 md:mt-0"
+        className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 bg-slate-800/50 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl"
       >
-        {/* Left side - App Introduction - Hidden on mobile */}
-        <motion.div 
-          className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 to-indigo-800 p-6 lg:p-8 text-white"
-          initial={{ x: -50 }}
-          animate={{ x: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <div className="h-full flex flex-col">
-            <motion.div
-              initial={{ y: -20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
-            >
-              <h1 className="text-3xl font-bold mb-2">Bắt Đầu Học Tập Ngay</h1>
-              <p className="text-blue-100 mb-8">Đăng ký tài khoản để trải nghiệm đầy đủ tính năng</p>
-            </motion.div>
-            
-            <div className="flex-1">
-              <img 
-                src="https://img.freepik.com/free-vector/sign-up-concept-illustration_114360-7885.jpg" 
-                alt="Đăng ký tài khoản" 
-                className="object-cover rounded-lg shadow-lg mb-8 max-w-full"
-              />
-              
-              <div className="space-y-3 sm:space-y-4">
-                {features.map((feature, index) => (
-                  <motion.div 
-                    key={index}
-                    className="flex items-start"
-                    initial={{ x: -20, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: 0.4 + (index * 0.1), duration: 0.5 }}
-                    onMouseEnter={() => setIsHovering(index)}
-                    onMouseLeave={() => setIsHovering(null)}
-                  >
-                    <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-800 flex items-center justify-center mr-3">
-                      {feature.icon}
-                    </div>
-                    <div>
-                      <motion.h3 
-                        className="text-lg font-medium"
-                        animate={{ scale: isHovering === index ? 1.03 : 1 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        {feature.title}
-                      </motion.h3>
-                      <p className="mt-1 text-sm text-blue-100">{feature.description}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
+        {/* Left Side: Visual (Swapped for Register) */}
+        <div className="hidden lg:flex flex-col justify-center p-12 relative bg-gradient-to-br from-indigo-600/90 to-purple-700/90 text-white order-last">
+          <h1 className="text-4xl font-bold mb-4 leading-tight text-right">
+            Gia Nhập <br /> Cộng Đồng
+          </h1>
+          <p className="text-indigo-100 text-lg mb-8 text-right ml-auto max-w-sm">
+            Bắt đầu hành trình chinh phục kiến thức với các công cụ học tập tốt nhất.
+          </p>
+          <div className="relative z-10 flex justify-end">
+            <img
+              src="https://img.freepik.com/free-vector/sign-up-concept-illustration_114360-7885.jpg"
+              alt="Register"
+              className="rounded-2xl shadow-lg border border-white/20 opacity-90 hover:scale-105 transition-transform duration-500 max-w-md"
+            />
           </div>
-        </motion.div>
-        
-        {/* Right side - Register Form */}
-        <motion.div 
-          className="w-full lg:w-1/2 flex items-center justify-center overflow-y-auto p-3 sm:p-4 md:p-6 lg:p-8"
-          initial={{ x: 50 }}
-          animate={{ x: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <div className="w-full max-w-md px-2 sm:px-0">
-            <motion.div
-              initial={{ y: -20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.4, duration: 0.5 }}
-              className="text-center mb-8"
-            >
-              <h2 className="text-3xl font-bold text-gray-800 mb-2">Đăng Ký Tài Khoản</h2>
-              <p className="text-gray-600">Tạo tài khoản để bắt đầu học tập</p>
-            </motion.div>
-            
+          {/* Decor Circles */}
+          <div className="absolute bottom-10 left-10 w-32 h-32 bg-white/10 rounded-full blur-2xl animate-pulse"></div>
+        </div>
+
+        {/* Right Side: Form */}
+        <div className="p-8 sm:p-12 flex flex-col justify-center bg-slate-900/40">
+          <div className="max-w-xl w-full mx-auto">
+            <div className="mb-8 text-center lg:text-left">
+              <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400 mb-2">Đăng Ký</h2>
+              <p className="text-slate-400">Tạo tài khoản mới hoàn toàn miễn phí</p>
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">Họ và tên</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <PremiumInput
+                  label="Họ và tên"
+                  value={formData.fullName}
+                  onChange={handleInputChange('fullName')}
+                  placeholder="Nguyễn Văn A"
+                  icon={FaAddressCard}
+                  required
+                />
+                <PremiumInput
+                  label="Tên đăng nhập"
+                  value={formData.username}
+                  onChange={handleInputChange('username')}
+                  placeholder="username"
+                  icon={FaUser}
+                  required
+                />
+              </div>
+
+              <PremiumInput
+                label="Email"
+                type="email"
+                value={formData.email}
+                onChange={handleInputChange('email')}
+                placeholder="name@example.com"
+                icon={FaEnvelope}
+                required
+              />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FaUserTie className="text-gray-400" />
-                  </div>
-                  <input
-                    id="fullName"
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                    placeholder="Nhập họ và tên đầy đủ"
+                  <PremiumInput
+                    label="Mật khẩu"
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={handleInputChange('password')}
+                    placeholder="••••••••"
+                    icon={FaLock}
                     required
                   />
                 </div>
-              </div>
-              
-              <div>
-                <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">Tên đăng nhập</label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FaUser className="text-gray-400" />
-                  </div>
-                  <input
-                    id="username"
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                    placeholder="Chọn tên đăng nhập"
+                  <PremiumInput
+                    label="Xác nhận"
+                    type={showPassword ? "text" : "password"}
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange('confirmPassword')}
+                    placeholder="••••••••"
+                    icon={FaLock}
                     required
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-[38px] text-slate-400 hover:text-indigo-400 transition-colors"
+                  >
+                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  </button>
                 </div>
               </div>
-              
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FaEnvelope className="text-gray-400" />
-                  </div>
-                  <input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                    placeholder="Nhập địa chỉ email"
-                    required
-                  />
-                </div>
+
+              <div className="flex items-start text-sm">
+                <label className="flex items-start text-slate-400 cursor-pointer mt-2">
+                  <input type="checkbox" required className="mt-1 mr-2 rounded bg-slate-700 border-slate-600 text-indigo-500 focus:ring-indigo-500/50" />
+                  <span>Tôi đồng ý với <a href="#" className="text-indigo-400 font-bold hover:underline">Điều khoản</a> và <a href="#" className="text-indigo-400 font-bold hover:underline">Chính sách bảo mật</a></span>
+                </label>
               </div>
-              
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FaLock className="text-gray-400" />
-                  </div>
-                  <input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                    placeholder="Tạo mật khẩu"
-                    required
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">Xác nhận mật khẩu</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FaLock className="text-gray-400" />
-                  </div>
-                  <input
-                    id="confirmPassword"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                    placeholder="Nhập lại mật khẩu"
-                    required
-                  />
-                </div>
-              </div>
-              
-              <div className="flex items-start mt-4">
-                <div className="flex items-center h-5 mt-0.5">
-                  <input
-                    id="terms"
-                    name="terms"
-                    type="checkbox"
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    required
-                  />
-                </div>
-                <div className="ml-3 text-xs sm:text-sm">
-                  <label htmlFor="terms" className="text-gray-700">
-                    Tôi đồng ý với <a href="#" className="text-blue-600 hover:underline">Điều khoản dịch vụ</a> và <a href="#" className="text-blue-600 hover:underline">Chính sách bảo mật</a>
-                  </label>
-                </div>
-              </div>
-              
-              <div className="mt-4 sm:mt-6 border-t border-gray-200 pt-4">
-                <p className="text-xs text-gray-500 text-center px-2">
-                  Bằng cách đăng ký, bạn đồng ý với Điều khoản dịch vụ và Chính sách bảo mật của chúng tôi.
-                </p>
-              </div>
-              
-              <button
+
+              <PremiumButton
                 type="submit"
-                className="w-full bg-blue-600 text-white py-2 sm:py-2.5 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 active:scale-95"
+                variant="primary"
+                className="w-full mt-4"
+                disabled={isLoading}
               >
-                Đăng Ký
-              </button>
+                {isLoading ? "Đang xử lý..." : "Đăng Ký Tài Khoản"}
+                {!isLoading && <HiArrowRight />}
+              </PremiumButton>
             </form>
-            
-            <div className="mt-6">
-              <p className="text-center text-xs sm:text-sm text-gray-600">
-                Đã có tài khoản?{' '}
-                <Link to="/login" className="text-blue-600 hover:underline font-medium whitespace-nowrap">
-                  Đăng nhập ngay
-                </Link>
-              </p>
+
+            <div className="mt-8 text-center text-slate-400 text-sm border-t border-slate-800 pt-6">
+              Bạn đã có tài khoản?{' '}
+              <Link to="/login" className="text-indigo-400 font-bold hover:text-indigo-300 transition-colors">
+                Đăng nhập
+              </Link>
             </div>
           </div>
-        </motion.div>
+        </div>
       </motion.div>
     </div>
   );

@@ -2,23 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FiHome, FiBook, FiUser, FiLogOut, FiLayers, FiBookOpen, FiBriefcase, FiSettings, FiChevronDown } from 'react-icons/fi';
+import { useAuth } from '../../context/AuthContext';
 
 function Sidebar({ onNavigate, isSidebarOpen }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const username = "Người dùng"; // Thay thế bằng tên user thực từ context hoặc state
+  const { logout, user } = useAuth();
+  const username = user?.fullName || "Người dùng";
   const [expandedMenu, setExpandedMenu] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  
+
   // Đảm bảo luôn hiển thị đầy đủ khi sidebar được mở hoặc trên desktop
   const showFullSidebar = !isMobile || isSidebarOpen;
-  
+
   // Theo dõi kích thước màn hình để phát hiện mobile
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     window.addEventListener('resize', handleResize);
     handleResize(); // Kiểm tra kích thước ban đầu
     return () => window.removeEventListener('resize', handleResize);
@@ -36,10 +38,10 @@ function Sidebar({ onNavigate, isSidebarOpen }) {
 
   const menuItems = [
     { id: 'home', icon: <FiHome className="w-5 h-5" />, label: 'Trang chủ', path: '/' },
-    { 
-      id: 'modules', 
-      icon: <FiBook className="w-5 h-5" />, 
-      label: 'Học tập', 
+    {
+      id: 'modules',
+      icon: <FiBook className="w-5 h-5" />,
+      label: 'Học tập',
       hasSubmenu: true,
       submenu: [
         { icon: <FiLayers className="w-4 h-4" />, label: 'Module học tập', path: '/study-modules' },
@@ -52,11 +54,8 @@ function Sidebar({ onNavigate, isSidebarOpen }) {
   ];
 
   const handleLogout = () => {
-    // Thêm logic logout ở đây
-    localStorage.removeItem('token');
-    localStorage.removeItem('userId');
-    console.log('Đăng xuất');
-    navigate('/login');
+    logout();
+    if (onNavigate) onNavigate();
   };
 
   // Animation variants - Đơn giản hóa để đảm bảo hiển thị đúng
@@ -67,15 +66,15 @@ function Sidebar({ onNavigate, isSidebarOpen }) {
 
   const submenuVariants = {
     hidden: { height: 0, opacity: 0, overflow: 'hidden' },
-    visible: { 
-      height: 'auto', 
+    visible: {
+      height: 'auto',
       opacity: 1,
-      transition: { 
-        type: "spring", 
-        stiffness: 300, 
-        damping: 24, 
-        staggerChildren: 0.05 
-      } 
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 24,
+        staggerChildren: 0.05
+      }
     }
   };
 
@@ -105,11 +104,10 @@ function Sidebar({ onNavigate, isSidebarOpen }) {
               variants={menuItemVariants}
               whileHover={{ x: !showFullSidebar ? 0 : 4 }}
               onClick={() => item.hasSubmenu ? toggleSubmenu(item.id) : handleNavigation(item.path)}
-              className={`flex items-center justify-between ${!showFullSidebar ? 'px-2' : 'px-4 sm:px-6'} py-3 text-left w-full rounded-r-full hover:bg-blue-50 transition-all ${
-                (location.pathname === item.path || (item.hasSubmenu && expandedMenu === item.id)) 
-                  ? 'bg-blue-100 text-primary font-medium' 
-                  : 'text-gray-600'
-              }`}
+              className={`flex items-center justify-between ${!showFullSidebar ? 'px-2' : 'px-4 sm:px-6'} py-3 text-left w-full rounded-r-full hover:bg-blue-50 transition-all ${(location.pathname === item.path || (item.hasSubmenu && expandedMenu === item.id))
+                ? 'bg-blue-100 text-primary font-medium'
+                : 'text-gray-600'
+                }`}
             >
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className={`flex items-center justify-center ${!showFullSidebar ? 'w-8 h-8' : ''} ${(location.pathname === item.path || (item.hasSubmenu && expandedMenu === item.id)) ? 'text-primary' : 'text-gray-500'}`}>

@@ -1,239 +1,272 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { toast } from 'react-toastify';
-import { getRandomFlashcard, updateFlashcardStatus } from '../../services/api';
-import { FiRefreshCw } from 'react-icons/fi';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
+import { FiRefreshCw, FiArrowLeft, FiCheck, FiX, FiInfo, FiTrendingUp } from 'react-icons/fi';
+import { getRandomFlashcard, updateFlashcardStatus } from '../../services/api';
+import { showError, showSuccess } from '../../services/toastService';
+import PremiumCard from '../common/PremiumCard';
+import PremiumButton from '../common/PremiumButton';
 
 function FlashcardReview() {
   const navigate = useNavigate();
   const { moduleId } = useParams();
   const [flashcard, setFlashcard] = useState(null);
   const [isFlipped, setIsFlipped] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     total: 0,
     known: 0,
     learning: 0
   });
 
-  const fetchRandomFlashcard = async (moduleId) => {
+  const fetchRandomFlashcard = async (id) => {
     try {
-      const response = await getRandomFlashcard(moduleId);
-      // Kiểm tra xem response.data có tồn tại không
+      setLoading(true);
+      const response = await getRandomFlashcard(id);
+
       if (!response || !response.data) {
-        // Không còn flashcard nào, đặt flashcard thành null để hiển thị kết quả
         setFlashcard(null);
         return;
       }
 
-      // Ensure we have both question and answer fields
-      const flashcardData = response.data;
-
-      // Khởi tạo các giá trị mặc định nếu không có
-      const processedData = {
-        id: flashcardData.id || 'unknown',
-        question: '',
-        answer: 'No answer provided',
-        ...flashcardData // Giữ các trường khác
-      };
-
-      // If backend still returns data with only content field, extract question and answer
-      if (flashcardData.content) {
-        // Handle legacy format: split content into question and answer if needed
-        const parts = flashcardData.content.split('\n\n');
-        if (parts.length > 1) {
-          processedData.question = parts[0];
-          processedData.answer = parts[1];
-        } else {
-          processedData.question = flashcardData.content;
-        }
-      }
-
-      // Nếu có sẵn question và answer, sử dụng chúng
-      if (flashcardData.question) {
-        processedData.question = flashcardData.question;
-      }
-
-      if (flashcardData.answer) {
-        processedData.answer = flashcardData.answer;
-      }
-
-      setFlashcard(processedData);
+      setFlashcard(response.data);
       setIsFlipped(false);
     } catch (error) {
-      toast.error('Error fetching flashcard!');
-      console.error('Error fetching flashcard:', error);
+      showError('Không thể tải thẻ ghi nhớ mới');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleStatusUpdate = async (status) => {
     if (!flashcard) return;
     try {
-      await updateFlashcardStatus (flashcard.id, { ...flashcard, status });
-      toast.success(`Marked as ${status}!`);
+      await updateFlashcardStatus(flashcard.id, { ...flashcard, status });
 
-      // Cập nhật thống kê
-      setStats(prevStats => ({
-        ...prevStats,
-        total: prevStats.total + 1,
-        known: status === 'KNOWN' ? prevStats.known + 1 : prevStats.known,
-        learning: status === 'LEARN' ? prevStats.learning + 1 : prevStats.learning
+      // Update statistics
+      setStats(prev => ({
+        ...prev,
+        total: prev.total + 1,
+        known: status === 'KNOWN' ? prev.known + 1 : prev.known,
+        learning: status === 'LEARN' ? prev.learning + 1 : prev.learning
       }));
 
+      // Less intrusive notification
+      // showSuccess(status === 'KNOWN' ? 'Đã thuộc!' : 'Cần học lại!');
       fetchRandomFlashcard(moduleId);
     } catch (error) {
-      toast.error('Error updating flashcard!');
-      console.error('Error updating flashcard:', error);
+      showError('Lỗi cập nhật trạng thái thẻ');
     }
   };
 
-  // Hiển thị trang kết quả học tập
-  const renderResults = () => (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg text-center"
-    >
-      <h2 className="text-2xl font-bold text-primary mb-6">Học tập hoàn thành!</h2>
-
-      <div className="bg-gray-50 p-6 rounded-lg mb-6">
-        <div className="text-lg mb-4">Thống kê học tập của bạn:</div>
-
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <div className="text-2xl font-bold text-blue-600">{stats.total}</div>
-            <div className="text-sm text-gray-600">Tổng số</div>
-          </div>
-
-          <div className="bg-green-50 p-4 rounded-lg">
-            <div className="text-2xl font-bold text-green-600">{stats.known}</div>
-            <div className="text-sm text-gray-600">Đã biết</div>
-          </div>
-
-          <div className="bg-yellow-50 p-4 rounded-lg">
-            <div className="text-2xl font-bold text-yellow-600">{stats.learning}</div>
-            <div className="text-sm text-gray-600">Cần học lại</div>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex justify-center gap-4">
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => navigate('/study-modules')}
-          className="bg-primary text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
-        >
-          Quay lại danh sách học phần
-        </motion.button>
-      </div>
-    </motion.div>
-  );
-
   useEffect(() => {
     fetchRandomFlashcard(moduleId);
-  }, []);
+  }, [moduleId]);
 
-  if (!flashcard) {
-    // Nếu đã học ít nhất một flashcard, hiển thị kết quả
-    if (stats.total > 0) {
-      return renderResults();
-    }
+  if (loading && !flashcard && stats.total === 0) {
+    return (
+      <div className="flex justify-center items-center h-[60vh]">
+        <div className="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
-    // Nếu chưa học flashcard nào
+  // Study Summary View
+  if (!flashcard && stats.total > 0) {
     return (
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="mx-auto bg-white p-6 rounded-lg shadow-lg text-center text-gray-500"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="max-w-2xl mx-auto space-y-8 py-10"
       >
-        Không có flashcard nào để ôn tập.
+        <PremiumCard className="p-12 text-center overflow-hidden relative border-emerald-500/20">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
+
+          <div className="w-24 h-24 bg-emerald-500/10 text-emerald-500 rounded-3xl flex items-center justify-center mx-auto mb-6">
+            <FiTrendingUp size={48} />
+          </div>
+
+          <h2 className="text-4xl font-black text-white mb-2">Tuyệt vời!</h2>
+          <p className="text-slate-400 mb-10">Bạn đã hoàn thành phiên ôn tập này.</p>
+
+          <div className="grid grid-cols-3 gap-6 mb-10">
+            <div className="p-6 bg-slate-800/50 rounded-[2rem] border border-white/5">
+              <div className="text-3xl font-black text-white">{stats.total}</div>
+              <div className="text-xs uppercase font-bold text-slate-500 mt-1">Đã học</div>
+            </div>
+            <div className="p-6 bg-emerald-500/10 rounded-[2rem] border border-emerald-500/20">
+              <div className="text-3xl font-black text-emerald-400">{stats.known}</div>
+              <div className="text-xs uppercase font-bold text-emerald-500/60 mt-1">Đã thuộc</div>
+            </div>
+            <div className="p-6 bg-amber-500/10 rounded-[2rem] border border-amber-500/20">
+              <div className="text-3xl font-black text-amber-400">{stats.learning}</div>
+              <div className="text-xs uppercase font-bold text-amber-500/60 mt-1">Cần học</div>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4">
+            <PremiumButton
+              variant="secondary"
+              onClick={() => navigate(`/study-modules/${moduleId}`)}
+              className="flex-1 justify-center py-4"
+            >
+              Quay lại Module
+            </PremiumButton>
+            <PremiumButton
+              variant="primary"
+              onClick={() => {
+                setStats({ total: 0, known: 0, learning: 0 });
+                fetchRandomFlashcard(moduleId);
+              }}
+              className="flex-1 justify-center py-4"
+            >
+              Học tiếp
+            </PremiumButton>
+          </div>
+        </PremiumCard>
       </motion.div>
     );
   }
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="mx-auto bg-white p-6 rounded-lg shadow-lg"
-    >
-
-      <div className="flex items-center mb-4">
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          type="button"
+  if (!flashcard) {
+    return (
+      <div className="text-center py-20">
+        <div className="w-20 h-20 bg-slate-800 rounded-3xl flex items-center justify-center mx-auto mb-6 text-slate-500 border border-slate-700">
+          <FiInfo size={32} />
+        </div>
+        <h3 className="text-xl font-bold text-white mb-2">Chưa có Flashcard nào</h3>
+        <p className="text-slate-400 mb-8">Hãy tạo thêm thẻ ghi nhớ để bắt đầu ôn tập!</p>
+        <PremiumButton
+          variant="primary"
           onClick={() => navigate(`/study-modules/${moduleId}`)}
-          className="flex items-center justify-center w-10 h-10 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 hover:text-gray-800 transition-all shadow-sm"
-          title="Back to Module"
+          className="max-w-xs mx-auto"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-        </motion.button>
+          Quay lại
+        </PremiumButton>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {/* Header Navigation */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <motion.button
+            whileHover={{ scale: 1.1, x: -2 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => navigate(`/study-modules/${moduleId}`)}
+            className="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-slate-400 border border-slate-700 hover:bg-slate-700 hover:text-white transition-all shadow-sm"
+          >
+            <FiArrowLeft size={24} />
+          </motion.button>
+          <div>
+            <h1 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Ôn tập Flashcard</h1>
+            <p className="text-sm text-slate-500">Chạm vào thẻ để lật xem đáp án</p>
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          <div className="px-4 py-2 bg-slate-800 rounded-xl border border-slate-700 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+            <span className="text-sm font-bold text-slate-300">{stats.total} thẻ</span>
+          </div>
+          <motion.button
+            whileHover={{ rotate: 180 }}
+            transition={{ type: "spring", stiffness: 260, damping: 20 }}
+            onClick={() => fetchRandomFlashcard(moduleId)}
+            className="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-indigo-400 border border-slate-700 hover:bg-slate-700 hover:text-indigo-300 transition-all shadow-sm"
+          >
+            <FiRefreshCw size={20} />
+          </motion.button>
+        </div>
       </div>
 
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-primary">Review Flashcard</h2>
-        <motion.button
-          whileHover={{ scale: 1.05, rotate: 180 }}
-          whileTap={{ scale: 0.95 }}
-          initial={{ rotate: 0 }}
-          onClick={() => fetchRandomFlashcard(moduleId)}
-          className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-          title="Get another flashcard"
-        >
-          <FiRefreshCw className="text-gray-600" />
-        </motion.button>
-      </div>
-      <div className="relative min-h-[180px] mb-4">
-        {/* Question side */}
+      {/* 3D Flashcard */}
+      <div className="perspective-1000 py-6 min-h-[450px] flex items-center justify-center">
         <motion.div
-          className="bg-gray-100 p-6 rounded-md text-center text-lg cursor-pointer w-full h-full absolute inset-0 flex items-center justify-center"
-          animate={{ rotateY: isFlipped ? 180 : 0, opacity: isFlipped ? 0 : 1 }}
-          transition={{ duration: 0.5 }}
+          animate={{ rotateY: isFlipped ? 180 : 0 }}
+          transition={{
+            type: "spring",
+            stiffness: 260,
+            damping: 20
+          }}
+          className="preserve-3d relative w-full h-[400px] cursor-pointer"
           onClick={() => setIsFlipped(!isFlipped)}
-          style={{ backfaceVisibility: 'hidden', display: isFlipped ? 'none' : 'flex' }}
         >
-          <div className="font-semibold">
-            {flashcard.question || flashcard.content}
+          {/* Front Side */}
+          <div className="backface-hidden absolute inset-0 w-full h-full bg-slate-800 bg-opacity-80 backdrop-blur-xl rounded-[3rem] shadow-2xl border border-white/10 flex flex-col items-center justify-center p-12 text-center group hover:bg-slate-800 transition-colors">
+            <div className="absolute top-10 left-10 opacity-20 group-hover:opacity-40 transition-opacity">
+              <FiInfo size={40} className="text-indigo-400" />
+            </div>
+            <p className="text-indigo-400 uppercase tracking-widest text-xs font-black mb-6">CÂU HỎI</p>
+            <h2 className="text-3xl md:text-4xl font-black text-white leading-tight break-words max-w-full">
+              {flashcard.question}
+            </h2>
+            <div className="absolute bottom-10 left-0 right-0 text-center text-slate-500 text-sm font-bold animate-bounce flex items-center justify-center gap-2">
+              Lật thẻ <FiRefreshCw />
+            </div>
           </div>
-        </motion.div>
 
-        {/* Answer side */}
-        <motion.div
-          className="bg-gray-100 p-6 rounded-md text-center text-lg cursor-pointer w-full h-full absolute inset-0 flex items-center justify-center"
-          animate={{ rotateY: isFlipped ? 0 : -180, opacity: isFlipped ? 1 : 0 }}
-          transition={{ duration: 0.5 }}
-          onClick={() => setIsFlipped(!isFlipped)}
-          style={{ backfaceVisibility: 'hidden', display: isFlipped ? 'flex' : 'none' }}
-        >
-          <div className="font-semibold">
-            {flashcard.answer || 'No answer provided'}
+          {/* Back Side */}
+          <div className="backface-hidden absolute inset-0 w-full h-full bg-gradient-to-br from-indigo-900 to-purple-900 rounded-[3rem] shadow-2xl border border-white/20 flex flex-col items-center justify-center p-12 text-center rotate-y-180">
+            <p className="text-indigo-200 uppercase tracking-widest text-xs font-black mb-6">ĐÁP ÁN</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-white italic leading-tight break-words max-w-full">
+              {flashcard.answer}
+            </h2>
           </div>
         </motion.div>
       </div>
-      <div className="flex justify-center gap-4">
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => handleStatusUpdate('LEARN')}
-          className="bg-yellow-500 text-white px-6 py-2 rounded-md hover:bg-yellow-600 transition-colors"
-        >
-          Learn Again
-        </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => handleStatusUpdate('KNOWN')}
-          className="bg-accent text-white px-6 py-2 rounded-md hover:bg-green-600 transition-colors"
-        >
-          Known
-        </motion.button>
+
+      {/* Control Buttons */}
+      <div className="min-h-[120px] flex items-start justify-center">
+        <AnimatePresence mode="wait">
+          {isFlipped ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="flex flex-col sm:flex-row gap-6 w-full justify-center"
+            >
+              <motion.button
+                whileHover={{ scale: 1.05, y: -4 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={(e) => { e.stopPropagation(); handleStatusUpdate('LEARN'); }}
+                className="flex-1 sm:max-w-xs flex flex-col items-center gap-2 p-6 rounded-[2.5rem] bg-slate-800 border border-amber-500/30 hover:bg-slate-700 transition-all shadow-lg group"
+              >
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <FiX size={24} className="text-amber-500" />
+                </div>
+                <span className="font-black text-lg text-amber-500">Cần học lại</span>
+                <span className="text-[10px] uppercase font-bold text-slate-500">Chưa nắm vững</span>
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.05, y: -4 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={(e) => { e.stopPropagation(); handleStatusUpdate('KNOWN'); }}
+                className="flex-1 sm:max-w-xs flex flex-col items-center gap-2 p-6 rounded-[2.5rem] bg-slate-800 border border-emerald-500/30 hover:bg-slate-700 transition-all shadow-lg group"
+              >
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <FiCheck size={24} className="text-emerald-500" />
+                </div>
+                <span className="font-black text-lg text-emerald-500">Đã thuộc</span>
+                <span className="text-[10px] uppercase font-bold text-slate-500">Thanh thạo rồi</span>
+              </motion.button>
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="text-slate-500 font-medium italic pt-4"
+            >
+              Giao diện sẽ hiện các lựa chọn sau khi bạn lật thẻ
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
