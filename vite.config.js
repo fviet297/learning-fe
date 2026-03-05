@@ -9,6 +9,7 @@ export default defineConfig({
     allowedHosts: [
       'learning-fe.onrender.com',
       'localhost',
+      'gonzalo-unpotable-jayne.ngrok-free.dev'
     ],
   },
   build: {
