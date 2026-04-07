@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { FiPlus, FiSearch, FiEdit, FiTrash2, FiBook, FiMoreVertical } from 'react-icons/fi';
+import { FiPlus, FiSearch, FiEdit, FiTrash2, FiBook, FiMoreVertical, FiClock } from 'react-icons/fi';
 import { getAllStudyModule, deleteModule } from '../services/api';
 import { showError, showSuccess } from '../services/toastService';
 import PremiumCard from '../components/common/PremiumCard';
@@ -89,13 +89,22 @@ function HomePage() {
           </h1>
           <p className="text-slate-400 mt-1">Quản lý và ôn tập các kiến thức đã tạo</p>
         </div>
-        <PremiumButton
-          onClick={() => navigate('/create-study-module')}
-          icon={FiPlus}
-          variant="primary"
-        >
-          Tạo Học Phần Mới
-        </PremiumButton>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <PremiumButton
+            onClick={() => navigate('/learn-clock')}
+            icon={FiClock}
+            variant="secondary"
+          >
+            Học Xem Đồng Hồ
+          </PremiumButton>
+          <PremiumButton
+            onClick={() => navigate('/create-study-module')}
+            icon={FiPlus}
+            variant="primary"
+          >
+            Tạo Học Phần Mới
+          </PremiumButton>
+        </div>
       </div>
 
       {/* Search Bar Section */}

@@ -22,6 +22,7 @@ import TakeQuizPage from './pages/TakeQuizPage';
 import CreateStudyModulePage from './pages/CreateStudyModulePage';
 import EditStudyModulePage from './pages/EditStudyModulePage';
 import StudyModuleDetails from './pages/StudyModuleDetails';
+import LearnClockPage from './pages/LearnClockPage';
 
 function App() {
   const location = useLocation();
@@ -45,6 +46,9 @@ function App() {
           <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>
               <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+
+              {/* Learn Clock */}
+              <Route path="/learn-clock" element={<ProtectedRoute><LearnClockPage /></ProtectedRoute>} />
 
               {/* Module Management */}
               <Route path="/create-study-module" element={<ProtectedRoute><CreateStudyModulePage /></ProtectedRoute>} />
